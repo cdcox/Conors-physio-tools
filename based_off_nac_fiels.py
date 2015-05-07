@@ -56,8 +56,35 @@ for filen in f_list:
     freq_steps=2
     time_cap=300
     ked=butter_bandpass_filter(zed, lowcut, highcut, fs, order=5)
-    targets=ked>(np.mean(ked)+4*np.std(ket))
-    
+    targets=ked>(np.mean(ked)+4*np.std(ked))
+    target_list=np.where(targets)
+    starts=[]
+    stops=[]
+    for iN,items in enumerate(target_list):
+        if iN==0:
+          starts.append(items)
+          stops.append(items)
+        elif (items-above_list[iN-1])<1000:
+            stops[len(stops)-1]=items
+        else:
+            starts.append(items)
+            stops.append(items)
+    for sN in range(len(starts)):
+        range_for_parsing=zed[starts[sN]-1000:stops[sN]+1000]
+        temp_mean=np.mean(zed[starts[sN]-30000:stops[sN]+30000])
+        temp_std=np.std(zed[starts[sN]-30000:stops[sN]+30000])
+        below_list=range_for_parsing<(temp_mean+temp_std*3)
+        temp_starts=[]
+        temp_stops=[]
+        for iN,items in enumerate(target_list):
+            if iN==0:
+                starts.append(items)
+                stops.append(items)
+            elif (items-above_list[iN-1])<1000:
+                stops[len(stops)-1]=items
+            else:
+                starts.append(items)
+                stops.append(items)
     L = len(zed)
     fftdata = fft(zed)
     dt = 1/fs 

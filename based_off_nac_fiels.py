@@ -29,20 +29,26 @@ def rebreak_data(output,size_of_bins):
         new_out.append(np.mean(output[(j*size_of_bins):((j+1)*size_of_bins)],0))
     return new_out
 
-def butter_bandpass(lowcut, highcut, fs, order=8):
+def butter_bandpass(lowcut, highcut, fs, order=8,kword='lowpass'):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
-    b, a = butter(order, [low, high], btype='band')
+    if kword=='lower':
+        b, a = butter(order, high, btype='lowpass')
+    else:
+        b, a = butter(order, [low,high], btype='band')
     return b, a
 
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=8):
-    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=8,kword='lowpass'):
+    b, a = butter_bandpass(lowcut, highcut, fs, order,kword)
     y = lfilter(b, a, data)
     return y
-directory=r'Y:\Ben\Ben_sharp_waves\1st May 2015 slice 1'
+directory=r'C:\Users\colorbox\Documents\benswr'
 f_list=glob.glob(directory+'\\*txt')
 outcome=[]
+master_area=[]
+master_starts=[]
+master_stops=[]
 for filen in f_list:
     print filen
     target=os.path.join(directory,filen)
@@ -55,50 +61,59 @@ for filen in f_list:
     fs=10000
     freq_steps=2
     time_cap=300
-    ked=butter_bandpass_filter(zed, lowcut, highcut, fs, order=5)
-    targets=ked>(np.mean(ked)+4*np.std(ked))
-    target_list=np.where(targets)
+    ked=butter_bandpass_filter(zed, lowcut, highcut, fs, 5,'band')
+    led=butter_bandpass_filter(zed, 0.1, 45, fs, 8,'lower')
+    down=(led<(np.mean(led)-4*np.std(led)))
+    target_list=np.where(down)
     starts=[]
     stops=[]
-    for iN,items in enumerate(target_list):
+    target_list=target_list[0]
+    meaner=np.mean(led)
+    iN=0
+    while iN<len(target_list):
+        items=target_list[iN]
+        if items==2484328:
+            print 'wai'
         if iN==0:
           starts.append(items)
           stops.append(items)
-        elif (items-above_list[iN-1])<1000:
+        elif iN==(len(target_list)-1):
+            stops[len(stops)-1]=items
+        elif (target_list[iN+1]-items)<150:
             stops[len(stops)-1]=items
         else:
-            starts.append(items)
-            stops.append(items)
+            starts.append(target_list[iN+1])
+            stops.append(target_list[iN+1])
+        iN+=1
+    area_list=[]
     for sN in range(len(starts)):
-        range_for_parsing=zed[starts[sN]-1000:stops[sN]+1000]
-        temp_mean=np.mean(zed[starts[sN]-30000:stops[sN]+30000])
-        temp_std=np.std(zed[starts[sN]-30000:stops[sN]+30000])
-        below_list=range_for_parsing<(temp_mean+temp_std*3)
-        temp_starts=[]
-        temp_stops=[]
-        for iN,items in enumerate(target_list):
-            if iN==0:
-                starts.append(items)
-                stops.append(items)
-            elif (items-above_list[iN-1])<1000:
-                stops[len(stops)-1]=items
+        temp_start=[]
+        temp_stop=[]
+        move=0
+        check=1
+        while check!=0:
+            q_check=led[starts[sN]-move]
+            if q_check>meaner:
+                check=0
+                temp_start.append(starts[sN]-move)
+                ttstart=starts[sN]-move
             else:
-                starts.append(items)
-                stops.append(items)
-    L = len(zed)
-    fftdata = fft(zed)
-    dt = 1/fs 
-    w=fftfreq(L,dt) 
-    ipos = where(w>0)
-    freqs = w[ipos]        # only look at positive frequencies
-    mags = abs(fftdata[ipos])
-    #plot(freqs, mags)
-    bob=[]
-    steve=np.array(bob)
-
-    outcome.append(np.sum(steve,1))
-    step=len(steve)/200
-    new=[]
-    for k in range(0,200):
-        new.append(np.mean(steve[step*(k-1):step*k],0))
-    #plt.imshow(steve,vmax=.00001, vmin=.000001)
+                move+=1
+        print 'check'+str(sN)+'out of'+str(np.max(starts))
+        move=0
+        check=1
+        while check!=0:
+            q_check=led[stops[sN]+move]
+            if q_check>meaner:
+                check=0
+                temp_stop.append(stops[sN]+move)
+                ttstop=stops[sN]+move
+            else:
+                move+=1
+        if np.sum(led[ttstart:ttstop])>0:
+            print 'haters'
+        area_list.append(np.sum(led[ttstart:ttstop]))
+    master_area.append(area_list)
+    master_starts.append(starts)
+    master_stops.append(stops)
+    

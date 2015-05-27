@@ -12,6 +12,7 @@ import scipy.signal as signal
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 import glob
+import os
 
 def spectra_slicer(freq_steps,time_vec,data_vec,time_cap):
     len_time=time_cap
@@ -43,37 +44,14 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=8,kword='lowpass'):
     b, a = butter_bandpass(lowcut, highcut, fs, order,kword)
     y = lfilter(b, a, data)
     return y
-directory=r'C:\Users\colorbox\Documents\benswr'
-f_list=glob.glob(directory+'\\*txt')
-outcome=[]
-master_area=[]
-master_starts=[]
-master_stops=[]
-for filen in f_list:
-    print filen
-    target=os.path.join(directory,filen)
-    f=open(target, 'r')
-    zed=f.readlines()
-    f.close()
-    zed=[float(x) for x in zed if x!='\n']
-    highcut=300
-    lowcut=100
-    fs=10000
-    freq_steps=2
-    time_cap=300
-    ked=butter_bandpass_filter(zed, lowcut, highcut, fs, 5,'band')
-    led=butter_bandpass_filter(zed, 0.1, 45, fs, 8,'lower')
-    down=(led<(np.mean(led)-4*np.std(led)))
-    target_list=np.where(down)
+    
+def build_starts_stops(data,target_list):
     starts=[]
     stops=[]
     target_list=target_list[0]
-    meaner=np.mean(led)
     iN=0
     while iN<len(target_list):
         items=target_list[iN]
-        if items==2484328:
-            print 'wai'
         if iN==0:
           starts.append(items)
           stops.append(items)
@@ -86,6 +64,35 @@ for filen in f_list:
             stops.append(target_list[iN+1])
         iN+=1
     area_list=[]
+    return starts,stops,area_list
+    
+directory=r'C:\Users\colorbox\Documents\benswr'
+f_list=glob.glob(directory+'\\*txt')
+outcome=[]
+master_area=[]
+master_starts=[]
+master_stops=[]
+master_freq=[]
+master_median=[]
+output_length=120
+for filen in f_list:
+    print filen
+    target=os.path.join(directory,filen)
+    f=open(target, 'r')
+    zed=f.readlines()
+    f.close()
+    zed=[float(x) for x in zed if x!='\n']
+    highcut=300
+    lowcut=100
+    fs=20000
+    freq_steps=2
+    time_cap=300
+    #Cutting areea and incidence of SWR
+    led=butter_bandpass_filter(zed, 0.1, 45, fs, 4,'lower')
+    down=(led<(np.mean(led)-2*np.std(led)))
+    target_list=np.where(down)
+    starts,stops,area_list=build_starts_stops(led,target_list)
+    meaner=np.mean(led)
     for sN in range(len(starts)):
         temp_start=[]
         temp_stop=[]
@@ -103,7 +110,12 @@ for filen in f_list:
         move=0
         check=1
         while check!=0:
-            q_check=led[stops[sN]+move]
+            if stops[sN]+move==len(led):
+                check=0
+                temp_stop.append(stops[sN]+move)
+                ttstop=stops[sN]+move
+            else:
+                q_check=led[stops[sN]+move]
             if q_check>meaner:
                 check=0
                 temp_stop.append(stops[sN]+move)
@@ -113,7 +125,33 @@ for filen in f_list:
         if np.sum(led[ttstart:ttstop])>0:
             print 'haters'
         area_list.append(np.sum(led[ttstart:ttstop]))
+    #Cutting out max height and local frequency of SWR
+    ked=butter_bandpass_filter(zed, lowcut, highcut, fs, 2,'band')
+    down=(ked<(np.mean(ked)-3*np.std(ked)))
+    target_list=np.where(down)
+    starts,stops,area_list=build_starts_stops(ked,target_list)    
+    
+    
+    
     master_area.append(area_list)
     master_starts.append(starts)
     master_stops.append(stops)
+    output_len=output_length*fs
+    epochs=int(np.ceil(len(zed)/output_len))
+    frequency=[]
+    avg_areas=[]
+    for eN in range(1,epochs):
+        try:
+            print eN
+            mask_range=(np.array(starts)<(eN*output_len))*(np.array(starts)>((eN-1)*output_len))
+            valid_areas=np.array(area_list)[mask_range]
+            frequency.append(len(valid_areas)/output_length)
+            avg_areas.append(median(valid_areas))
+        except:
+            frequency.append(0)
+            avg_areas.append(0)
+    master_freq.append(frequency)
+    master_median.append(avg_areas)
+        
+        
     

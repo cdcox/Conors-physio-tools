@@ -74,6 +74,8 @@ master_starts=[]
 master_stops=[]
 master_freq=[]
 master_median=[]
+master_max=[]
+master_power_real=[]
 output_length=120
 for filen in f_list:
     print filen
@@ -129,10 +131,30 @@ for filen in f_list:
     ked=butter_bandpass_filter(zed, lowcut, highcut, fs, 2,'band')
     down=(ked<(np.mean(ked)-3*np.std(ked)))
     target_list=np.where(down)
-    starts,stops,area_list=build_starts_stops(ked,target_list)    
-    
-    
-    
+    starts,stops,area_listzed=build_starts_stops(ked,target_list)
+    max_list=[]
+    for sN in range(len(starts)):
+        temp_start=[]
+        temp_stop=[]
+        start=starts[sN]-15/1000*fs
+        if start<0:
+            start=0
+        stop=stops[sN]+15/1000*fs
+        if stop> len(ked):
+            stop=len(ked)-1
+        power_kind_of=np.max(ked[start:stop])
+    #OK work this in a second
+        '''
+        L = len(ked[start:stop])
+        fftdata = fft(ked[start:stop])
+        dt = 1/fs 
+        w=fftfreq(L,dt) 
+        ipos = where(w>0)
+        freqs = w[ipos]        # only look at positive frequencies
+        mags = abs(fftdata[ipos])
+        '''
+        max_list.append(power_kind_of)
+    master_max.append(max_list)
     master_area.append(area_list)
     master_starts.append(starts)
     master_stops.append(stops)
@@ -140,16 +162,21 @@ for filen in f_list:
     epochs=int(np.ceil(len(zed)/output_len))
     frequency=[]
     avg_areas=[]
+    power_kind=[]
     for eN in range(1,epochs):
         try:
             print eN
             mask_range=(np.array(starts)<(eN*output_len))*(np.array(starts)>((eN-1)*output_len))
             valid_areas=np.array(area_list)[mask_range]
+            valid_powers=np.array(max_list)[mask_range]
             frequency.append(len(valid_areas)/output_length)
             avg_areas.append(median(valid_areas))
+            power_kind.append(median(valid_powers))
         except:
             frequency.append(0)
             avg_areas.append(0)
+            power_kind.append(0)
+    master_power_real.append(power_kind)
     master_freq.append(frequency)
     master_median.append(avg_areas)
         

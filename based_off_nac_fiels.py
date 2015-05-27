@@ -89,6 +89,7 @@ for filen in f_list:
     fs=20000
     freq_steps=2
     time_cap=300
+    output_len=fs*output_length
     #Cutting areea and incidence of SWR
     old_led=butter_bandpass_filter(zed, 0.1, 45, fs, 4,'lower')
     old_ked=butter_bandpass_filter(zed, lowcut, highcut, fs, 5,'band')
@@ -103,6 +104,7 @@ for filen in f_list:
         target_list=np.where(down)
         starts,stops,area_list=build_starts_stops(led,target_list)
         meaner=np.mean(led)
+        print 'check'+str(eN)+'out of'+str(epochs)
         for sN in range(len(starts)):
             temp_start=[]
             temp_stop=[]
@@ -116,7 +118,7 @@ for filen in f_list:
                     ttstart=starts[sN]-move
                 else:
                     move+=1
-            print 'check'+str(sN)+'out of'+str(np.max(starts))
+
             move=0
             check=1
             while check!=0:

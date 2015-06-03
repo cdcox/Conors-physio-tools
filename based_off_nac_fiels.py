@@ -138,7 +138,6 @@ for filen in f_list:
                 print 'haters'
             area_list.append(np.sum(led[ttstart:ttstop]))
         #Cutting out max height and local frequency of SWR
-        ked=butter_bandpass_filter(zed, lowcut, highcut, fs, 2,'band')
         down=(ked<(np.mean(ked)-3*np.std(ked)))
         target_list=np.where(down)
         starts,stops,area_listzed=build_starts_stops(ked,target_list)
@@ -163,8 +162,8 @@ for filen in f_list:
             freqs = w[ipos]        # only look at positive frequencies
             mags = abs(fftdata[ipos])
             '''
-        max_list.append(power_kind_of)
-        power_kind.append(max_list)
+            max_list.append(power_kind_of)
+        power_kind.append(np.median(max_list))
         frequency.append(len(area_list)/output_length)
         avg_areas.append(np.median(area_list))
         master_starts.append(starts)

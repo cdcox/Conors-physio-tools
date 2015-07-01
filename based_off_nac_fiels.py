@@ -5,6 +5,7 @@ Created on Wed Feb 11 10:44:45 2015
 @author: colorbox
 """
 from __future__ import division
+
 import scipy.io
 from numpy import *
 from numpy.fft import * 
@@ -76,98 +77,109 @@ master_freq=[]
 master_median=[]
 master_max=[]
 master_power_real=[]
+master_blank=[]
 output_length=120
+test_len=10
+highcut=300
+lowcut=100
+fs=20000
+freq_steps=2
+time_cap=300
 for filen in f_list:
+    
     print filen
     target=os.path.join(directory,filen)
     f=open(target, 'r')
     zed=f.readlines()
     f.close()
     zed=[float(x) for x in zed if x!='\n']
-    highcut=300
-    lowcut=100
-    fs=20000
-    freq_steps=2
-    time_cap=300
-    output_len=fs*output_length
-    #Cutting areea and incidence of SWR
-    old_led=butter_bandpass_filter(zed, 0.1, 45, fs, 4,'lower')
-    old_ked=butter_bandpass_filter(zed, lowcut, highcut, fs, 5,'band')
-    epochs=int(np.ceil(len(zed)/output_len))
-    frequency=[]
-    avg_areas=[]
-    power_kind=[]
-    for eN in range(1,epochs):
-        ked=old_ked[(eN-1)*output_len:eN*output_len]
-        led=old_led[(eN-1)*output_len:eN*output_len]
-        down=(led<(np.mean(led)-2*np.std(led)))
-        target_list=np.where(down)
-        starts,stops,area_list=build_starts_stops(led,target_list)
-        meaner=np.mean(led)
-        print 'check'+str(eN)+'out of'+str(epochs)
-        for sN in range(len(starts)):
-            temp_start=[]
-            temp_stop=[]
-            move=0
-            check=1
-            while check!=0:
-                q_check=led[starts[sN]-move]
-                if q_check>meaner:
-                    check=0
-                    temp_start.append(starts[sN]-move)
-                    ttstart=starts[sN]-move
-                else:
-                    move+=1
-
-            move=0
-            check=1
-            while check!=0:
-                if stops[sN]+move==len(led):
-                    check=0
-                    temp_stop.append(stops[sN]+move)
-                    ttstop=stops[sN]+move
-                else:
-                    q_check=led[stops[sN]+move]
-                if q_check>meaner:
-                    check=0
-                    temp_stop.append(stops[sN]+move)
-                    ttstop=stops[sN]+move
-                else:
-                    move+=1
-            if np.sum(led[ttstart:ttstop])>0:
-                print 'haters'
-            area_list.append(np.sum(led[ttstart:ttstop]))
-        #Cutting out max height and local frequency of SWR
-        down=(ked<(np.mean(ked)-3*np.std(ked)))
-        target_list=np.where(down)
-        starts,stops,area_listzed=build_starts_stops(ked,target_list)
-        max_list=[]
-        for sN in range(len(starts)):
-            temp_start=[]
-            temp_stop=[]
-            start=starts[sN]-15/1000*fs
-            if start<0:
-                start=0
-            stop=stops[sN]+15/1000*fs
-            if stop> len(ked):
-                stop=len(ked)-1
-            power_kind_of=np.max(ked[start:stop])
-        #OK work this in a second
-            '''
-            L = len(ked[start:stop])
-            fftdata = fft(ked[start:stop])
-            dt = 1/fs 
-            w=fftfreq(L,dt) 
-            ipos = where(w>0)
-            freqs = w[ipos]        # only look at positive frequencies
-            mags = abs(fftdata[ipos])
-            '''
-            max_list.append(power_kind_of)
-        power_kind.append(np.median(max_list))
-        frequency.append(len(area_list)/output_length)
-        avg_areas.append(np.median(area_list))
-        master_starts.append(starts)
-        master_stops.append(stops)
+    numb_tests=len(zed)/(test_len*fs)
+    for testn in range(numb_tests-1):
+        temp_zed=zed[testn*(test_len*fs):(testn+1)*(test_len*fs)]
+        #output_len=fs*output_length
+        #Cutting areea and incidence of SWR
+        old_led=butter_bandpass_filter(temp_zed, 0.1, 45, fs, 4,'lower')
+        old_ked=butter_bandpass_filter(temp_zed, lowcut, highcut, fs, 5,'band')
+        blank=np.zeros([len(old_led),1])
+        epochs=int(np.ceil(len(zed)/output_len))
+        frequency=[]
+        avg_areas=[]
+        power_kind=[]
+        for eN in range(1,epochs):
+            ked=old_ked[(eN-1)*output_len:eN*output_len]
+            led=old_led[(eN-1)*output_len:eN*output_len]
+            #down=(led<(np.mean(led)-2*np.std(led)))
+            down=(led<(-.02))
+            target_list=np.where(down)
+            starts,stops,area_list=build_starts_stops(led,target_list)
+            meaner=np.mean(led)
+            print 'check'+str(eN)+'out of'+str(epochs)
+            old_stop=0
+            for sN in range(len(starts)):
+                if np.abs(old_stop-starts[sN])<(50./1000*fs):
+                    continue
+                temp_start=[]
+                temp_stop=[]
+                move=0
+                check=1
+                while check!=0:
+                    q_check=led[starts[sN]-move]
+                    if q_check>meaner:
+                        check=0
+                        temp_start.append(starts[sN]-move)
+                        ttstart=starts[sN]-move
+                    else:
+                        move+=1
+    
+                move=0
+                check=1
+                while check!=0:
+                    if stops[sN]+move==len(led):
+                        check=0
+                        temp_stop.append(stops[sN]+move)
+                        ttstop=stops[sN]+move
+                    else:
+                        q_check=led[stops[sN]+move]
+                    if q_check>meaner:
+                        check=0
+                        temp_stop.append(stops[sN]+move)
+                        ttstop=stops[sN]+move
+                    else:
+                        move+=1
+                if np.sum(led[ttstart:ttstop])>0:
+                    print 'haters'
+                if np.abs(ttstart-ttstop)>(5./1000*fs):
+                    area_list.append(np.sum(led[ttstart:ttstop]))
+                    blank[ttstart]=1
+                    blank[ttstop]=-1
+                old_stop=ttstop
+            #Cutting out max height and local frequency of SWR
+            down=(ked<(np.mean(ked)-3*np.std(ked)))
+            target_list=np.where(down)
+            starts,stops,area_listzed=build_starts_stops(ked,target_list)
+            max_list=[]
+            old_stop=0
+            for sN in range(len(starts)):
+                if np.abs(old_stop-starts[sN])<(50./1000*fs):
+                    continue
+                temp_start=[]
+                temp_stop=[]
+                start=starts[sN]-15./1000*fs
+                if start<0:
+                    start=0
+                stop=stops[sN]+15./1000*fs
+                if stop> len(ked):
+                    stop=len(ked)-1
+                if np.abs(starts[sN]-old_stop)>(5./1000*fs):
+                    power_kind_of=np.max(ked[start:stop])
+                    max_list.append(power_kind_of)
+                old_stop=stop
+            power_kind.append(np.median(max_list))
+            frequency.append(len(area_list)/output_length)
+            avg_areas.append(np.median(area_list))
+            master_starts.append(starts)
+            master_stops.append(stops)
+    master_blank.append(blank)
     master_power_real.append(power_kind)
     master_freq.append(frequency)
     master_median.append(avg_areas)

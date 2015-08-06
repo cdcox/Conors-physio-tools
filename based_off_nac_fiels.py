@@ -78,7 +78,7 @@ master_median=[]
 master_max=[]
 master_power_real=[]
 master_blank=[]
-output_length=10
+output_length=10 # set to logical cut len!
 for filen in f_list:
     print filen
     target=os.path.join(directory,filen)
@@ -104,10 +104,11 @@ for filen in f_list:
         ked=old_ked[(eN-1)*output_len:eN*output_len]
         led=old_led[(eN-1)*output_len:eN*output_len]
         #down=(led<(np.mean(led)-2*np.std(led)))
-        down=(led<(-.02))
+        down=(led<(np.mean(led)-.03))
         target_list=np.where(down)
         starts,stops,area_list=build_starts_stops(led,target_list)
-        meaner=np.mean(led)
+        #meaner=np.mean(led)
+        meaner=np.mean(led)-.003
         print 'check'+str(eN)+'out of'+str(epochs)
         old_stop=0
         for sN in range(len(starts)):
@@ -119,6 +120,7 @@ for filen in f_list:
             check=1
             while check!=0:
                 q_check=led[starts[sN]-move]
+
                 if q_check>meaner:
                     check=0
                     temp_start.append(starts[sN]-move)
@@ -145,8 +147,8 @@ for filen in f_list:
                 print 'haters'
             if np.abs(ttstart-ttstop)>(5./1000*fs):
                 area_list.append(np.sum(led[ttstart:ttstop]))
-                blank[ttstart]=1
-                blank[ttstop]=-1
+                blank[ttstart+(eN-1)*output_len]=.2
+                blank[ttstop+(eN-1)*output_len]=-.2
             old_stop=ttstop
         #Cutting out max height and local frequency of SWR
         down=(ked<(np.mean(ked)-3*np.std(ked)))
@@ -174,7 +176,7 @@ for filen in f_list:
         avg_areas.append(np.median(area_list))
         master_starts.append(starts)
         master_stops.append(stops)
-    master_blank.append(blank)
+    #master_blank.append(blank)
     master_power_real.append(power_kind)
     master_freq.append(frequency)
     master_median.append(avg_areas)

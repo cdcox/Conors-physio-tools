@@ -67,7 +67,7 @@ def build_starts_stops(data,target_list):
     area_list=[]
     return starts,stops,area_list
     
-directory=r'C:\Users\colorbox\Documents\benswr'
+directory=r'Y:\Ben\New folder'
 f_list=glob.glob(directory+'\\*txt')
 outcome=[]
 master_area=[]
@@ -100,9 +100,18 @@ for filen in f_list:
     frequency=[]
     avg_areas=[]
     power_kind=[]
+    test=[]
+    test2=[]
+    cutter_mean=np.mean(old_led)
     for eN in range(1,epochs):
         ked=old_ked[(eN-1)*output_len:eN*output_len]
         led=old_led[(eN-1)*output_len:eN*output_len]
+        #cut out bad samples
+        if sum((led<(-.06+cutter_mean)))>15000 or sum((led>.04+cutter_mean))>1000:
+            avg_areas.append(0)
+            power_kind.append(0)
+            frequency.append(0)
+            continue
         #down=(led<(np.mean(led)-2*np.std(led)))
         down=(led<(np.mean(led)-.03))
         target_list=np.where(down)
@@ -171,6 +180,8 @@ for filen in f_list:
                 power_kind_of=np.max(ked[start:stop])
                 max_list.append(power_kind_of)
             old_stop=stop
+
+        avg_areas.append(np.median(area_list))
         power_kind.append(np.median(max_list))
         frequency.append(len(area_list)/output_length)
         avg_areas.append(np.median(area_list))

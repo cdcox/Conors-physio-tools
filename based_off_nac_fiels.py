@@ -67,7 +67,7 @@ def build_starts_stops(data,target_list):
     area_list=[]
     return starts,stops,area_list
     
-directory=r'Y:\Ben\New folder'
+directory=r'C:\Users\colorbox\Documents\benswr'
 f_list=glob.glob(directory+'\\*txt')
 outcome=[]
 master_area=[]
@@ -177,14 +177,13 @@ for filen in f_list:
             if stop> len(ked):
                 stop=len(ked)-1
             if np.abs(starts[sN]-old_stop)>(5./1000*fs):
-                power_kind_of=np.max(ked[start:stop])
+                power_kind_of=np.min(led[start:stop])
                 max_list.append(power_kind_of)
             old_stop=stop
 
-        avg_areas.append(np.median(area_list))
-        power_kind.append(np.median(max_list))
+        avg_areas.append(np.mean(area_list))
+        power_kind.append(np.mean(max_list))
         frequency.append(len(area_list)/output_length)
-        avg_areas.append(np.median(area_list))
         master_starts.append(starts)
         master_stops.append(stops)
     #master_blank.append(blank)

@@ -28,6 +28,8 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=8,kword='lowpass'):
 data=np.genfromtxt(r'Y:\Conor\yjia\2015_11_02_0008a.atf',skiprows=10,delimiter='\t')
 master_area=[]
 master_count=[]
+histograms=[]
+means=[]
 filt=butter_bandpass_filter(data[:,1],0.1,20,2000,4,'lower')
 for i in range(1,len(data)/40000):
     #data_blob=data[(i-1)*40000:i*40000,1]
@@ -76,3 +78,5 @@ for i in range(1,len(data)/40000):
         
     master_area.append(areas)
     master_count.append(count)
+    means.append(crimped_mean)
+    histograms.append(list(np.histogram(areas,bins=binz)[0]))

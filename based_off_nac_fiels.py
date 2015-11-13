@@ -5,7 +5,7 @@ Created on Wed Feb 11 10:44:45 2015
 @author: colorbox
 """
 from __future__ import division
-
+import numpy as np
 import scipy.io
 from numpy import *
 from numpy.fft import * 
@@ -74,12 +74,13 @@ master_area=[]
 master_starts=[]
 master_stops=[]
 master_freq=[]
-master_median=[]
+master_mean=[]
 master_max=[]
+master_areas=[]
 master_power_real=[]
 master_blank=[]
 output_length=10 # set to logical cut len!
-for filen in f_list:
+for filen in f_list[0:2]:
     print filen
     target=os.path.join(directory,filen)
     f=open(target, 'r')
@@ -102,6 +103,7 @@ for filen in f_list:
     power_kind=[]
     test=[]
     test2=[]
+    all_areas_sub=[]
     cutter_mean=np.mean(old_led)
     for eN in range(1,epochs):
         ked=old_ked[(eN-1)*output_len:eN*output_len]
@@ -181,15 +183,22 @@ for filen in f_list:
                 max_list.append(power_kind_of)
             old_stop=stop
 
-        avg_areas.append(np.mean(area_list))
-        power_kind.append(np.mean(max_list))
+        avg_areas.append(np.median(area_list))
+        power_kind.append(np.median(max_list))
         frequency.append(len(area_list)/output_length)
         master_starts.append(starts)
         master_stops.append(stops)
+        binz=range(0,-200,-10)
+        binz.append(-10000)
+        binz.reverse()
+        histo=list(np.histogram(area_list,bins=binz)[0])
+        all_areas_sub.append(histo)
     #master_blank.append(blank)
     master_power_real.append(power_kind)
     master_freq.append(frequency)
-    master_median.append(avg_areas)
+    master_mean.append(avg_areas)
+    all_areas_sub.insert(0,binz)
+    master_areas.append(all_areas_sub)
         
         
     

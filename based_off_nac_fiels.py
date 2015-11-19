@@ -74,13 +74,13 @@ master_area=[]
 master_starts=[]
 master_stops=[]
 master_freq=[]
-master_mean=[]
+master_median=[]
 master_max=[]
 master_areas=[]
 master_power_real=[]
 master_blank=[]
 output_length=10 # set to logical cut len!
-for filen in f_list[0:2]:
+for filen in f_list:
     print filen
     target=os.path.join(directory,filen)
     f=open(target, 'r')
@@ -94,7 +94,7 @@ for filen in f_list[0:2]:
     time_cap=300
     output_len=fs*output_length
     #Cutting areea and incidence of SWR
-    old_led=butter_bandpass_filter(zed, 0.1, 45, fs, 4,'lower')
+    old_led=butter_bandpass_filter(zed, 2, 45, fs, 2,'band')
     old_ked=butter_bandpass_filter(zed, lowcut, highcut, fs, 5,'band')
     blank=np.zeros([len(old_led),1])
     epochs=int(np.ceil(len(zed)/output_len))
@@ -115,9 +115,10 @@ for filen in f_list[0:2]:
             frequency.append(0)
             continue
         #down=(led<(np.mean(led)-2*np.std(led)))
-        down=(led<(np.mean(led)-.03))
+        down=(led<(np.mean(led)-.025))
         target_list=np.where(down)
         starts,stops,area_list=build_starts_stops(led,target_list)
+        max_list=[]
         #meaner=np.mean(led)
         meaner=np.mean(led)-.003
         print 'check'+str(eN)+'out of'+str(epochs)
@@ -158,10 +159,15 @@ for filen in f_list[0:2]:
                 print 'haters'
             if np.abs(ttstart-ttstop)>(5./1000*fs):
                 area_list.append(np.sum(led[ttstart:ttstop]))
+                try:
+                    max_list.append(np.min(led[ttstart:ttstop]))
+                except:
+                    max_list.append(0)
                 blank[ttstart+(eN-1)*output_len]=.2
                 blank[ttstop+(eN-1)*output_len]=-.2
             old_stop=ttstop
         #Cutting out max height and local frequency of SWR
+        '''    
         down=(ked<(np.mean(ked)-3*np.std(ked)))
         target_list=np.where(down)
         starts,stops,area_listzed=build_starts_stops(ked,target_list)
@@ -182,21 +188,22 @@ for filen in f_list[0:2]:
                 power_kind_of=np.min(led[start:stop])
                 max_list.append(power_kind_of)
             old_stop=stop
-
+            '''
         avg_areas.append(np.median(area_list))
         power_kind.append(np.median(max_list))
         frequency.append(len(area_list)/output_length)
         master_starts.append(starts)
         master_stops.append(stops)
-        binz=range(0,-200,-10)
+        binz=range(0,-150,-5)
         binz.append(-10000)
         binz.reverse()
         histo=list(np.histogram(area_list,bins=binz)[0])
+        histo.append(np.std(led))
         all_areas_sub.append(histo)
     #master_blank.append(blank)
     master_power_real.append(power_kind)
     master_freq.append(frequency)
-    master_mean.append(avg_areas)
+    master_median.append(avg_areas)
     all_areas_sub.insert(0,binz)
     master_areas.append(all_areas_sub)
         

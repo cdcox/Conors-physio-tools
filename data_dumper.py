@@ -6,17 +6,17 @@ Created on Tue May 26 17:52:07 2015
 """
 import os
 import csv
-directory=r'C:\Users\colorbox\Desktop\bloop.csv'
+directory=r'C:\Users\colorbox\Documents\ben_dump\freq.csv'
 myfile = open(directory, 'wb')
 wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
 wr.writerows(master_freq)
 myfile.close()
-directory=r'C:\Users\colorbox\Desktop\areas.csv'
+directory=r'C:\Users\colorbox\Documents\ben_dump\areas.csv'
 myfile = open(directory, 'wb')
 wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
 wr.writerows(master_median)
 myfile.close()
-directory=r'C:\Users\colorbox\Desktop\maxpoints.csv'
+directory=r'C:\Users\colorbox\Documents\ben_dump\maxpoints.csv'
 myfile = open(directory, 'wb')
 wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
 wr.writerows(master_power_real)

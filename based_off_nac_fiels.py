@@ -80,15 +80,15 @@ master_areas=[]
 master_power_real=[]
 master_blank=[]
 output_length=10 # set to logical cut len!
-for filen in f_list:
+for filen in f_list[11:12]:
     print filen
     target=os.path.join(directory,filen)
     f=open(target, 'r')
     zed=f.readlines()
     f.close()
     zed=[float(x) for x in zed if x!='\n']
-    highcut=300
-    lowcut=100
+    highcut=500
+    lowcut=150
     fs=20000
     freq_steps=2
     time_cap=300
@@ -123,6 +123,8 @@ for filen in f_list:
         meaner=np.mean(led)-.003
         print 'check'+str(eN)+'out of'+str(epochs)
         old_stop=0
+        fstops=[]
+        fstarts=[]
         for sN in range(len(starts)):
             if np.abs(old_stop-starts[sN])<(50./1000*fs):
                 continue
@@ -139,6 +141,7 @@ for filen in f_list:
                     ttstart=starts[sN]-move
                 else:
                     move+=1
+            fstarts.append(ttstart)
 
             move=0
             check=1
@@ -166,6 +169,7 @@ for filen in f_list:
                 blank[ttstart+(eN-1)*output_len]=.2
                 blank[ttstop+(eN-1)*output_len]=-.2
             old_stop=ttstop
+            fstops.append(ttstop)
         #Cutting out max height and local frequency of SWR
         '''    
         down=(ked<(np.mean(ked)-3*np.std(ked)))

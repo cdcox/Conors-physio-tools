@@ -69,6 +69,8 @@ def build_starts_stops(data,target_list):
     
 directory=r'C:\Users\colorbox\Documents\benswr'
 f_list=glob.glob(directory+'\\*txt')
+f_list2=f_list
+#f_list=f_list[37:38]
 outcome=[]
 master_area=[]
 master_starts=[]
@@ -79,8 +81,10 @@ master_max=[]
 master_areas=[]
 master_power_real=[]
 master_blank=[]
+esi_real=[]
+min_max_power_real=[]
 output_length=10 # set to logical cut len!
-for filen in f_list[11:12]:
+for filen in f_list:
     print filen
     target=os.path.join(directory,filen)
     f=open(target, 'r')
@@ -104,12 +108,16 @@ for filen in f_list[11:12]:
     test=[]
     test2=[]
     all_areas_sub=[]
+    esi=[]
+    min_max_power=[]
     cutter_mean=np.mean(old_led)
+    #for eN in range(1,epochs):
     for eN in range(1,epochs):
         ked=old_ked[(eN-1)*output_len:eN*output_len]
         led=old_led[(eN-1)*output_len:eN*output_len]
         #cut out bad samples
-        if sum((led<(-.06+cutter_mean)))>15000 or sum((led>.04+cutter_mean))>1000:
+        if sum((led<(-.06+cutter_mean)))>15000:# or sum((led>.04+cutter_mean))>1000:
+            print 'fail'
             avg_areas.append(0)
             power_kind.append(0)
             frequency.append(0)
@@ -121,7 +129,7 @@ for filen in f_list[11:12]:
         max_list=[]
         #meaner=np.mean(led)
         meaner=np.mean(led)-.003
-        print 'check'+str(eN)+'out of'+str(epochs)
+        #print 'check'+str(eN)+'out of'+str(epochs)
         old_stop=0
         fstops=[]
         fstarts=[]
@@ -193,8 +201,15 @@ for filen in f_list[11:12]:
                 max_list.append(power_kind_of)
             old_stop=stop
             '''
-        avg_areas.append(np.median(area_list))
-        power_kind.append(np.median(max_list))
+        esi.append(np.mean(afstops[1:]-afstarts[:-1]))
+        try:
+            min_max_power.append([np.min(max_list),np.max(max_list)])
+        except:
+            print max_list
+            print 'whut'
+            min_max_power.append([0,0])
+        avg_areas.append(np.mean(area_list))
+        power_kind.append(np.mean(max_list))
         frequency.append(len(area_list)/output_length)
         master_starts.append(starts)
         master_stops.append(stops)
@@ -205,6 +220,8 @@ for filen in f_list[11:12]:
         histo.append(np.std(led))
         all_areas_sub.append(histo)
     #master_blank.append(blank)
+    esi_real.append(esi)
+    min_max_power_real.append(min_max_power)
     master_power_real.append(power_kind)
     master_freq.append(frequency)
     master_median.append(avg_areas)

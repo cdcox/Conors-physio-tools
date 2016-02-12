@@ -21,6 +21,25 @@ myfile = open(directory, 'wb')
 wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
 wr.writerows(master_power_real)
 myfile.close()
+directory=r'C:\Users\colorbox\Documents\ben_dump\esi.csv'
+myfile = open(directory, 'wb')
+wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+wr.writerows(esi_real)
+myfile.close()
+directory=r'C:\Users\colorbox\Documents\ben_dump\power_min.csv'
+myfile = open(directory, 'wb')
+wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+wr.writerows(min_real)
+directory=r'C:\Users\colorbox\Documents\ben_dump\power_max.csv'
+myfile = open(directory, 'wb')
+wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+wr.writerows(max_real)
+myfile.close()
+directory=r'C:\Users\colorbox\Documents\ben_dump\slopes.csv'
+myfile = open(directory, 'wb')
+wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+wr.writerows(slope_real)
+myfile.close()
 for fn,files in enumerate(f_list):
     out_dir=r'C:\Users\colorbox\Documents\ben_dump'
     myfile=open(os.path.join(out_dir,files[35:-4]+'.csv'),'wb')#fix this line too!

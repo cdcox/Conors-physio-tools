@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 import glob
 import os
+import scipy.stats
+from scipy.optimize import curve_fit
 
 def spectra_slicer(freq_steps,time_vec,data_vec,time_cap):
     len_time=time_cap
@@ -82,7 +84,9 @@ master_areas=[]
 master_power_real=[]
 master_blank=[]
 esi_real=[]
-min_max_power_real=[]
+min_real=[]
+max_real=[]
+slope_real=[]
 output_length=10 # set to logical cut len!
 for filen in f_list:
     print filen
@@ -109,7 +113,10 @@ for filen in f_list:
     test2=[]
     all_areas_sub=[]
     esi=[]
-    min_max_power=[]
+    min_power=[]
+    max_power=[]
+    avg_slope=[]
+    counter2=0
     cutter_mean=np.mean(old_led)
     #for eN in range(1,epochs):
     for eN in range(1,epochs):
@@ -127,6 +134,8 @@ for filen in f_list:
         target_list=np.where(down)
         starts,stops,area_list=build_starts_stops(led,target_list)
         max_list=[]
+        slope_list=[]
+        r_value_list=[]
         #meaner=np.mean(led)
         meaner=np.mean(led)-.003
         #print 'check'+str(eN)+'out of'+str(epochs)
@@ -172,8 +181,17 @@ for filen in f_list:
                 area_list.append(np.sum(led[ttstart:ttstop]))
                 try:
                     max_list.append(np.min(led[ttstart:ttstop]))
+                    bottom=np.argmin(led[ttstart:ttstop])
+                    perc_90=int(bottom*.9)
+                    perc_10=int(bottom*.1)
+                    slope, intercept, r_value, p_value, std_err=scipy.stats.linregress(np.arange(perc_10,perc_90),led[ttstart+perc_10:ttstart+perc_90])
+                    if r_value>-.7:
+                       counter2+=1
+                    slope_list.append(slope)
+                    r_value_list.append(r_value)
                 except:
                     max_list.append(0)
+                    slope_list.append(0)
                 blank[ttstart+(eN-1)*output_len]=.2
                 blank[ttstop+(eN-1)*output_len]=-.2
             old_stop=ttstop
@@ -201,14 +219,17 @@ for filen in f_list:
                 max_list.append(power_kind_of)
             old_stop=stop
             '''
-        esi.append(np.mean(afstops[1:]-afstarts[:-1]))
+        esi.append(np.mean(np.array(fstops)[1:]-np.array(fstarts)[:-1]))
         try:
-            min_max_power.append([np.min(max_list),np.max(max_list)])
+            max_power.append(np.max(max_list))
+            min_power.append(np.min(max_list))
         except:
             print max_list
             print 'whut'
-            min_max_power.append([0,0])
+            max_power.append(0)
+            min_power.append(0)
         avg_areas.append(np.mean(area_list))
+        avg_slope.append(np.mean(slope_list))
         power_kind.append(np.mean(max_list))
         frequency.append(len(area_list)/output_length)
         master_starts.append(starts)
@@ -220,8 +241,11 @@ for filen in f_list:
         histo.append(np.std(led))
         all_areas_sub.append(histo)
     #master_blank.append(blank)
+    print counter2
+    slope_real.append(avg_slope)
     esi_real.append(esi)
-    min_max_power_real.append(min_max_power)
+    min_real.append(min_power)
+    max_real.append(max_power)
     master_power_real.append(power_kind)
     master_freq.append(frequency)
     master_median.append(avg_areas)

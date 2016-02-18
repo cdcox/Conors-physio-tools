@@ -69,10 +69,13 @@ def build_starts_stops(data,target_list):
     area_list=[]
     return starts,stops,area_list
     
+def func(x,a,b,c,d):
+    return(a*np.exp(-c*x-b))
+    
 directory=r'C:\Users\colorbox\Documents\benswr'
 f_list=glob.glob(directory+'\\*txt')
 f_list2=f_list
-#f_list=f_list[37:38]
+f_list=f_list[37:38]
 outcome=[]
 master_area=[]
 master_starts=[]
@@ -119,9 +122,10 @@ for filen in f_list:
     counter2=0
     cutter_mean=np.mean(old_led)
     #for eN in range(1,epochs):
-    for eN in range(1,epochs):
+    for eN in range(1,8):
         ked=old_ked[(eN-1)*output_len:eN*output_len]
         led=old_led[(eN-1)*output_len:eN*output_len]
+        zzed=zed[(eN-1)*output_len:eN*output_len]
         #cut out bad samples
         if sum((led<(-.06+cutter_mean)))>15000:# or sum((led>.04+cutter_mean))>1000:
             print 'fail'
@@ -187,6 +191,17 @@ for filen in f_list:
                     slope, intercept, r_value, p_value, std_err=scipy.stats.linregress(np.arange(perc_10,perc_90),led[ttstart+perc_10:ttstart+perc_90])
                     if r_value>-.7:
                        counter2+=1
+                    min_val=np.min(led[ttstart:ttstop])
+                    max_val=led[ttstop]
+                    target_5=.3*(max_val-min_val)+min_val
+                    target_9=(max_val-min_val)+min_val
+                    temp_values=led[ttstart+bottom:ttstop]
+                    ydata=np.where((temp_values>target_5)*(temp_values>target_5))
+                    ydata=temp_values[ydata[0]]
+                    xdata=np.arange(len(ydata))
+                    popt, pcov = curve_fit(func, xdata, ydata,p0 = (1, 1e-6, 1))
+                    print popt
+                    print pcov
                     slope_list.append(slope)
                     r_value_list.append(r_value)
                 except:

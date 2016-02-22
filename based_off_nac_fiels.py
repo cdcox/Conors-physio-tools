@@ -75,7 +75,7 @@ def func(x,a,b,c,d):
 directory=r'C:\Users\colorbox\Documents\benswr'
 f_list=glob.glob(directory+'\\*txt')
 f_list2=f_list
-f_list=f_list[36:38]
+#f_list=f_list[36:38]
 outcome=[]
 master_area=[]
 master_starts=[]
@@ -89,7 +89,13 @@ master_blank=[]
 esi_real=[]
 min_real=[]
 max_real=[]
+master_tau=[]
+master_a=[]
+master_esi=[]
 slope_real=[]
+esi_histo=[]
+master_mean_tau=[]
+master_mean_a=[]
 output_length=10 # set to logical cut len!
 for filen in f_list:
     print filen
@@ -119,6 +125,12 @@ for filen in f_list:
     min_power=[]
     max_power=[]
     avg_slope=[]
+    all_taus=[]
+    all_as=[]
+    all_esi=[]
+    histo_ez=[]
+    mean_as=[]
+    mean_taus=[]
     counter2=0
     cutter_mean=np.mean(old_led)
     #for eN in range(1,epochs):
@@ -140,6 +152,8 @@ for filen in f_list:
         max_list=[]
         slope_list=[]
         r_value_list=[]
+        a_list=[]
+        tau_list=[]
         #meaner=np.mean(led)
         meaner=np.mean(led)-.003
         #print 'check'+str(eN)+'out of'+str(epochs)
@@ -195,17 +209,10 @@ for filen in f_list:
                     ydata=zzed[ttstart+min_val:ttstop+50]
                     xdata=np.arange(len(ydata))
                     popt, pcov = curve_fit(func, xdata, ydata,p0 = (-0.1, 0.8, 0.003,1))
-                    plt.plot(ydata)
-                    print 'werk2'
-                    plt.plot(xdata,func(xdata,*popt))
-                    print 'werk3'
-                    plt.savefig(r'C:\Users\colorbox\Documents\ben_dump\\'+str(popt[0])+'k'+str(popt[1])+'k'+str(popt[2])+'k'+str(popt[3])+'.jpg')
-                    plt.clf()
-                    plt.cla()
-                    plt.close()
+                    a_list.append(popt[0])
+                    tau_list.append(popt[1])
                     slope_list.append(slope)
                     r_value_list.append(r_value)
-                    print 'werk'
                 except:
                     max_list.append(0)
                     slope_list.append(0)
@@ -245,6 +252,16 @@ for filen in f_list:
             print 'whut'
             max_power.append(0)
             min_power.append(0)
+        all_taus.append(tau_list)
+        tau_list=np.array(tau_list)
+        tau_list=tau_list[tau_list<0]
+        mean_taus.append(np.mean(tau_list))
+        ebinz=range(0,20000,2500)
+        ehisto=list(np.histogram(np.array(fstops)[1:]-np.array(fstarts)[:-1],bins=ebinz)[0])
+        histo_ez.append(ehisto)
+        all_as.append(a_list)
+        mean_as.append(np.mean(a_list))
+        all_esi.append(np.array(fstops)[1:]-np.array(fstarts)[:-1])
         avg_areas.append(np.mean(area_list))
         avg_slope.append(np.mean(slope_list))
         power_kind.append(np.mean(max_list))
@@ -268,6 +285,11 @@ for filen in f_list:
     master_median.append(avg_areas)
     all_areas_sub.insert(0,binz)
     master_areas.append(all_areas_sub)
-        
+    master_tau.append(all_taus)
+    master_a.append(all_as)
+    master_esi.append(all_esi)
+    esi_histo.insert(0,ebinz)
+    master_mean_tau.append(mean_taus)
+    master_mean_a.append(mean_as)
         
     

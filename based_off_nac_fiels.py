@@ -75,7 +75,7 @@ def func(x,a,b,c,d):
 directory=r'C:\Users\colorbox\Documents\benswr'
 f_list=glob.glob(directory+'\\*txt')
 f_list2=f_list
-#f_list=f_list[36:38]
+#f_list=f_list[21:22]
 outcome=[]
 master_area=[]
 master_starts=[]
@@ -96,6 +96,7 @@ slope_real=[]
 esi_histo=[]
 master_mean_tau=[]
 master_mean_a=[]
+time_between_real=[]
 output_length=10 # set to logical cut len!
 for filen in f_list:
     print filen
@@ -125,6 +126,7 @@ for filen in f_list:
     min_power=[]
     max_power=[]
     avg_slope=[]
+    avg_time_between=[]
     all_taus=[]
     all_as=[]
     all_esi=[]
@@ -132,8 +134,10 @@ for filen in f_list:
     mean_as=[]
     mean_taus=[]
     counter2=0
+    counter3=0
+    r_value2=0
     cutter_mean=np.mean(old_led)
-    #for eN in range(1,epochs):
+    #for eN in range(1,9):
     for eN in range(1,epochs):
         ked=old_ked[(eN-1)*output_len:eN*output_len]
         led=old_led[(eN-1)*output_len:eN*output_len]
@@ -151,6 +155,7 @@ for filen in f_list:
         starts,stops,area_list=build_starts_stops(led,target_list)
         max_list=[]
         slope_list=[]
+        time_between_list=[]
         r_value_list=[]
         a_list=[]
         tau_list=[]
@@ -199,23 +204,34 @@ for filen in f_list:
                 area_list.append(np.sum(led[ttstart:ttstop]))
                 try:
                     max_list.append(np.min(led[ttstart:ttstop]))
-                    bottom=np.argmin(led[ttstart:ttstop])
-                    perc_90=int(bottom*.9)
-                    perc_10=int(bottom*.1)
-                    slope, intercept, r_value, p_value, std_err=scipy.stats.linregress(np.arange(perc_10,perc_90),led[ttstart+perc_10:ttstart+perc_90])
+                    top=led[ttstart]
+                    cut=np.argmin(led[ttstart:ttstop])
+                    bottom=np.min(led[ttstart:ttstop])
+                    dist=top-bottom
+                    dist_90=top-dist*.9
+                    dist_10=top-dist*.1
+                    temp=led[ttstart:ttstart+cut]
+                    relevant_values=temp[(temp>dist_90)*(temp<dist_10)]
+                    time_between=len(relevant_values)
+                    slope, intercept, r_value, p_value, std_err=scipy.stats.linregress(np.arange(0,time_between),relevant_values)
+                    
                     if r_value>-.7:
                        counter2+=1
+                    if r_value2==r_value:
+                        counter3r+=1
+                    r_value2=r_value
                     min_val=np.argmin(zzed[ttstart:ttstop])
                     ydata=zzed[ttstart+min_val:ttstop+50]
                     xdata=np.arange(len(ydata))
                     popt, pcov = curve_fit(func, xdata, ydata,p0 = (-0.1, 0.8, 0.003,1))
                     a_list.append(popt[0])
-                    tau_list.append(popt[1])
+                    tau_list.append(popt[2])
                     slope_list.append(slope)
+                    time_between_list.append(time_between)
                     r_value_list.append(r_value)
                 except:
                     max_list.append(0)
-                    slope_list.append(0)
+                    print 'eh'
                 blank[ttstart+(eN-1)*output_len]=.2
                 blank[ttstop+(eN-1)*output_len]=-.2
             old_stop=ttstop
@@ -252,18 +268,23 @@ for filen in f_list:
             print 'whut'
             max_power.append(0)
             min_power.append(0)
-        all_taus.append(tau_list)
         tau_list=np.array(tau_list)
-        tau_list=tau_list[tau_list<0]
+        tau_list=tau_list[tau_list>0]
+        tau_list=tau_list[np.isnan(tau_list)==False]
+        tau_list=1/tau_list
+        tau_list=tau_list
+        all_taus.append(tau_list)
         mean_taus.append(np.mean(tau_list))
-        ebinz=range(0,20000,2500)
+        ebinz=range(0,200000,2500)
         ehisto=list(np.histogram(np.array(fstops)[1:]-np.array(fstarts)[:-1],bins=ebinz)[0])
         histo_ez.append(ehisto)
         all_as.append(a_list)
+        
         mean_as.append(np.mean(a_list))
         all_esi.append(np.array(fstops)[1:]-np.array(fstarts)[:-1])
         avg_areas.append(np.mean(area_list))
         avg_slope.append(np.mean(slope_list))
+        avg_time_between.append(np.mean(time_between_list))
         power_kind.append(np.mean(max_list))
         frequency.append(len(area_list)/output_length)
         master_starts.append(starts)
@@ -276,7 +297,9 @@ for filen in f_list:
         all_areas_sub.append(histo)
     #master_blank.append(blank)
     print counter2
+    print counter3
     slope_real.append(avg_slope)
+    time_between_real.append(avg_time_between)
     esi_real.append(esi)
     min_real.append(min_power)
     max_real.append(max_power)
@@ -288,7 +311,8 @@ for filen in f_list:
     master_tau.append(all_taus)
     master_a.append(all_as)
     master_esi.append(all_esi)
-    esi_histo.insert(0,ebinz)
+    histo_ez.insert(0,ebinz)
+    esi_histo.append(histo_ez)
     master_mean_tau.append(mean_taus)
     master_mean_a.append(mean_as)
         

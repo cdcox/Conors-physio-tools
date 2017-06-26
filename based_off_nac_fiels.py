@@ -72,7 +72,7 @@ def build_starts_stops(data,target_list):
 def func(x,a,b,c,d):
     return(a*np.exp(-c*x-b))
     
-directory=r'C:\Users\colorbox\Documents\benswr'
+directory=r'Y:\Ben\June 2017'
 f_list=glob.glob(directory+'\\*txt')
 f_list2=f_list
 #f_list=f_list[21:22]
@@ -98,6 +98,7 @@ master_mean_tau=[]
 master_mean_a=[]
 time_between_real=[]
 output_length=10 # set to logical cut len!
+f_list=[f_list[1]]
 for filen in f_list:
     print filen
     target=os.path.join(directory,filen)

@@ -98,7 +98,7 @@ master_mean_tau=[]
 master_mean_a=[]
 time_between_real=[]
 output_length=10 # set to logical cut len!
-f_list=[f_list[1]]
+#f_list=[f_list[1]]
 for filen in f_list:
     print filen
     target=os.path.join(directory,filen)

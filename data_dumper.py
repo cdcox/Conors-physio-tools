@@ -67,29 +67,27 @@ out_dir=r'Y:\Ben\June 2017\out'
 workbook.save(os.path.join(out_dir,'alldata.xls'))
 
 for fn,files in enumerate(f_list):
+    file_name=files.split('\\')[-1][:-4]
     #out_dir=r'C:\Users\colorbox\Documents\ben_dump'
-    myfile=open(os.path.join(out_dir,files[35:-4]+'.csv'),'wb')#fix this line too!
+    myfile=open(os.path.join(out_dir,file_name+'.csv'),'wb')#fix this line too!
     print_out_array=master_areas[fn] #gotta fix this line up
     wr=csv.writer(myfile, quoting=csv.QUOTE_ALL)
     wr.writerows(print_out_array)
     myfile.close()
-for fn,files in enumerate(f_list):
     #out_dir=r'C:\Users\colorbox\Documents\ben_dump'
-    myfile=open(os.path.join(out_dir,files[35:-4]+'esi_histo.csv'),'wb')#fix this line too!
+    myfile=open(os.path.join(out_dir,file_name+'esi_histo.csv'),'wb')#fix this line too!
     print_out_array=esi_histo[fn] #gotta fix this line up
     wr=csv.writer(myfile, quoting=csv.QUOTE_ALL)
     wr.writerows(print_out_array)
     myfile.close()
-for fn,files in enumerate(f_list):
     #out_dir=r'C:\Users\colorbox\Documents\ben_dump'
-    myfile=open(os.path.join(out_dir,files[35:-4]+'a.csv'),'wb')#fix this line too!
+    myfile=open(os.path.join(out_dir,file_name+'a.csv'),'wb')#fix this line too!
     print_out_array=master_a[fn] #gotta fix this line up
     wr=csv.writer(myfile, quoting=csv.QUOTE_ALL)
     wr.writerows(print_out_array)
     myfile.close()
-for fn,files in enumerate(f_list):
     #out_dir=r'C:\Users\colorbox\Documents\ben_dump'
-    myfile=open(os.path.join(out_dir,files[35:-4]+'tau.csv'),'wb')#fix this line too!
+    myfile=open(os.path.join(out_dir,file_name+'tau.csv'),'wb')#fix this line too!
     print_out_array=master_tau[fn] #gotta fix this line up
     wr=csv.writer(myfile, quoting=csv.QUOTE_ALL)
     wr.writerows(print_out_array)

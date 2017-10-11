@@ -19,7 +19,7 @@ def excel_data_writer(variable,sheet_name,workbook):
 workbook=xlwt.Workbook()
 excel_data_writer(master_freq,'freq',workbook)
 excel_data_writer(master_median,'areas',workbook)
-excel_data_writer(master_power_real,'maxpoints',workbook)
+excel_data_writer(master_power_real,'mean of maxpoints',workbook)
 excel_data_writer(min_real,'power_min',workbook)
 excel_data_writer(max_real,'power_max',workbook)
 excel_data_writer(slope_real,'slopes',workbook)
@@ -62,7 +62,7 @@ wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
 wr.writerows(slope_real)
 myfile.close()
 '''
-out_dir=r'Y:\Ben\June 2017\out'
+out_dir=r'Y:\Ben\Ben_sharp_waves\August & september 2017'
 
 workbook.save(os.path.join(out_dir,'alldata.xls'))
 

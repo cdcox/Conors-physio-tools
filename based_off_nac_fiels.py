@@ -72,7 +72,7 @@ def build_starts_stops(data,target_list):
 def func(x,a,b,c,d):
     return(a*np.exp(-c*x-b))
     
-directory=r'Y:\Ben\June 2017'
+directory=r'Y:\Ben\Ben_sharp_waves\August & september 2017'
 f_list=glob.glob(directory+'\\*txt')
 f_list2=f_list
 #f_list=f_list[21:22]

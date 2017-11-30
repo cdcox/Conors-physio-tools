@@ -9,12 +9,15 @@ import numpy as np
 import os
 import csv
 import matplotlib.pyplot as plt
-directory=r'Y:\Aliza\4. Electrophysiology\Experiments\4. THC tx CA1 LTP gamma\Ben LTP THC slices\burst2'
+#directory=r'Y:\Weisheng_physiology data\Estrogen\Female\LTP\ERA-MPP\Proestrus vs Diestrus theta burst area\burst'
+directory = input('Enter the directory: ')
 file_list=os.listdir(directory)
 numb_burst=10
 burst_freq=5
 all_aocs=[]
 all_baselines=[]
+all_firsts=[]
+all_ends=[]
 real_f_name=[]
 for filename in file_list:
     if not('.csv' in filename) or 'output' in filename:
@@ -26,12 +29,12 @@ for filename in file_list:
     time_between_bursts=1000/burst_freq*samp_per_ms
     average=np.mean(data)
     stdev=np.std(data)
-    first=np.where(np.abs(data)>(average+2*stdev))[0][0]
+    first=np.where(np.abs(data)>(.2))[0][0]
     aocs=[]
     baselines=[]
     firsts=[]
     ends=[]
-    plt.plot(data[0:20000],lw=.1)
+    plt.plot(data[0:2000*samp_per_ms],lw=.1)
     for i in range(numb_burst):
         temp_first=i*time_between_bursts+first
         base_line_start=int(temp_first-10*samp_per_ms)

@@ -20,7 +20,6 @@ def read_and_parse(directory):
     with open(file_to_open) as csvfile:
         csv_read=csv.reader(csvfile,delimiter=',')
         csv_read=list(csv_read)
-        csv_read=list(zip(*csv_read))
     return csv_read
     
 def butter_bandpass(lowcut, highcut, fs, order=5):
@@ -59,8 +58,8 @@ for filename,opt,defs in file_list_opts:
     #convolved_signal=signal.convolve(zed,ones(20)/20)
     input_array2=np.genfromtxt(os.path.join(directory,filename),delimiter=',')
     filtered_signal=butter_bandpass_filter(input_array2,lowcut,highcut,fs,order=2)
-    if opt==0:
-        cut=defs
+    if opt=='0':
+        cut=float(defs)
     else:
         plt.plot(filtered_signal[0:fs*50])
         plt.title('click enter to advance ' +filename)
@@ -70,7 +69,7 @@ for filename,opt,defs in file_list_opts:
                 break
         cut=float(eg.enterbox(r'value youd like you can also just enter this on the sheet and switch the 0 to 1'))
     down_swings=filtered_signal<cut
-    one_is_start_count_list=down_swings[1:]-down_swings[:-1]
+    one_is_start_count_list=float(down_swings[1:])-float(down_swings[:-1])
     filt_one_is_down_count=one_is_start_count_list>0
     starts_of_down=np.where(filt_one_is_down_count)
     starts_stops=[]

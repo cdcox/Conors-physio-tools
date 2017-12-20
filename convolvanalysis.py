@@ -64,7 +64,7 @@ def xlwtr(outs,directory):
         col_pos+=1
     book.save(os.path.join(directory,"outputconvolutionanalysis.xls"))
 
-directory=r'C:\Users\colorbox\Documents\benca3stuff'
+directory=r'C:\Users\colorbox\Documents\benca3stuff\tesst'
 fs=20000
 highcut=5000
 lowcut=6
@@ -81,6 +81,13 @@ for filename in file_list:
         starts_stops[:,1]=starts_stops[:,1]+15
         check=starts_stops[:,1]-starts_stops[:,0]
         starts_stopscut=starts_stops[(check<65),:]
+        temp=[]
+        for kk  in starts_stopscut:
+            if np.min(filtered_signal[kk[0]:kk[1]])<-.3:
+                continue
+            else:
+                temp.append(kk)
+        starts_stopscut=np.vstack(temp)
         #starts_stopscut=starts_stopscut[starts_stopscut[:,0]<(100*fs),:]
         convolver=[]
         for i in range(len(starts_stopscut)):

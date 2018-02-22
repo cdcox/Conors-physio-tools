@@ -77,7 +77,7 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=8):
     y = filtfilt(b, a, data)
     return y
 
-directory = r'C:\Users\colorbox\Documents\ben_data\kacidround2'
+directory = r'C:\Users\colorbox\Documents\ben_data\fulltxt'
 
 fs = 20000
 highcut = 3000
@@ -88,47 +88,34 @@ all_out_histograms = []
 #dir_list=dir_list[0:2]
 outputter=AutoVivification()
 for book_name in dir_list:
-    if not('.xlsx' in book_name[-5:]):
+    if not('.txt' in book_name[-4:]):
         continue
-    data_book=xlrd.open_workbook(os.path.join(directory,book_name))
-    snames=data_book.sheet_names()
+    data_book=np.genfromtxt(os.path.join(directory,book_name),delimiter=',')
+    
     for thresholds in [-0.1,-0.05,-0.025]:
+        i=0
         
-        for sheet_name in snames:
-            j=0
-            sheet=data_book.sheet_by_name(sheet_name)
-            i=0
-            for cols in range(sheet.ncols):
-                values=sheet.col_values(cols)
-                names=values[2]
-                values=values[3:]
-                if values[0]==0:
-                    continue
-                if values[0]=='':
-                    i=0
-                    j+=1
-                    continue
-                values=[x for x in values if x!='']
-                i+=1
-                bb_filt_out = butter_bandpass_filter(values,lowcut,highcut,fs,8)
-                starts_stops = generate_starts_stops(bb_filt_out[:],thresholds)
-                seconds = len(bb_filt_out[:])/fs
-                if len(starts_stops)==0:
-                    out_hist=list(np.zeros(np.round(seconds)))
-                else:
-                    out_hist = np.histogram(starts_stops[:,0],np.round(seconds))
-                    out_hist = list(out_hist[0])
-                all_out_names.append(book_name+sheet_name+str(j)+'_'+str(i)+names)
-                all_out_histograms.append(out_hist)
-                plt.plot(bb_filt_out[:],linewidth=.1)
-                sname=sheet_name.replace('/','')
-                names=names.replace('/','')
-                plt.savefig(os.path.join(directory,book_name)+sname+str(j)+'_'+str(i)+names+'.png',dpi=300)
-                plt.cla()
-                plt.clf()
-                outputter[thresholds][book_name+'_'+sheet_name+str(j)+'_'+str(i)]=[names,out_hist]
-                print(sheet_name+' '+book_name+' '+str(j)+'_'+str(i)+'fail')
-            print(sheet_name+' '+book_name)
+        values=data_book
+        i+=1
+        bb_filt_out = butter_bandpass_filter(values,lowcut,highcut,fs,8)
+        starts_stops = generate_starts_stops(bb_filt_out[:],thresholds)
+        seconds = len(bb_filt_out[:])/(fs*10)
+        if len(starts_stops)==0:
+            out_hist=list(np.zeros(np.round(seconds)))
+        else:
+            out_hist = np.histogram(starts_stops[:,0],np.round(seconds))
+            out_hist = list(out_hist[0])
+        all_out_names.append(book_name+str(i))
+        all_out_histograms.append(out_hist)
+        #plt.plot(bb_filt_out[:],linewidth=.1)
+        #plt.savefig(os.path.join(directory,book_name)+str(i)+'.png',dpi=300)
+        #plt.cla()
+        
+        #plt.clf()
+        outputter[thresholds][book_name+str(i)]=[out_hist]
+   
+        print(book_name+' '+str(i)+'fail')
+        print(' '+book_name)
 
 out_book=xlwt.Workbook(encoding="utf-8")
 new_threshs=list(outputter.keys())
@@ -139,8 +126,8 @@ for nt in new_threshs:
     skeys.sort()
     for kn,nameout in enumerate(skeys):
         temp_out_hist=out_thresh[nameout]
-        sheetout.write(kn,0,nameout+'_'+temp_out_hist[0])
-        temp_out_hist=temp_out_hist[1]
+        sheetout.write(0,kn,nameout+'_')
+        temp_out_hist=temp_out_hist[0]
         for knn in range(len(temp_out_hist)):
-            sheetout.write(kn,knn+1,int(temp_out_hist[knn]))
-    out_book.save(os.path.join(directory,'total_hist_out_all_thresh.xls'))
+            sheetout.write(knn+1,kn,int(temp_out_hist[knn]))
+    out_book.save(os.path.join(directory,'total_hist_out_all_threshtxt.xls'))

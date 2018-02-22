@@ -14,6 +14,14 @@ import scipy.signal as signal
 import csv
 import easygui as eg
 
+class AutoVivification(dict):
+    """Implementation of perl's autovivification feature."""
+    def __getitem__(self, item):
+        try:
+            return dict.__getitem__(self, item)
+        except KeyError:
+            value = self[item] = type(self)()
+            return value
 
 def read_and_parse(directory):
     file_to_open=os.path.join(directory,'files_to_be_run.csv')

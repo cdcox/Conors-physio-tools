@@ -77,7 +77,7 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=8):
     y = filtfilt(b, a, data)
     return y
 
-directory = r'C:\Users\colorbox\Documents\ben_data\kacidround2'
+directory = r'C:\Users\colorbox\Documents\ben_data'
 
 fs = 20000
 highcut = 3000
@@ -92,8 +92,7 @@ for book_name in dir_list:
         continue
     data_book=xlrd.open_workbook(os.path.join(directory,book_name))
     snames=data_book.sheet_names()
-    for thresholds in [-0.1,-0.05,-0.025]:
-        
+    for thresholds in [-0.1,-0.05,-0.025]:      
         for sheet_name in snames:
             j=0
             sheet=data_book.sheet_by_name(sheet_name)
@@ -111,6 +110,7 @@ for book_name in dir_list:
                 values=[x for x in values if x!='']
                 i+=1
                 bb_filt_out = butter_bandpass_filter(values,lowcut,highcut,fs,8)
+                plt.plot(bb_filt_out[0:10000],linewidth=.1)
                 starts_stops = generate_starts_stops(bb_filt_out[:],thresholds)
                 seconds = len(bb_filt_out[:])/fs
                 if len(starts_stops)==0:
@@ -118,12 +118,20 @@ for book_name in dir_list:
                 else:
                     out_hist = np.histogram(starts_stops[:,0],np.round(seconds))
                     out_hist = list(out_hist[0])
+                    ssa=np.array(starts_stops)
+                    ssa=ssa[ssa[:,1]<10000,:].tolist()
+                    maxbb=np.max(bb_filt_out)
+                    minbb=np.min(bb_filt_out)
+                    for pairs in ssa:
+                        plt.plot([pairs[0],pairs[0]],[minbb,maxbb],'-r',lw=.1)
+                        plt.plot([pairs[1],pairs[1]],[minbb,maxbb],'-b',lw=.1)
                 all_out_names.append(book_name+sheet_name+str(j)+'_'+str(i)+names)
                 all_out_histograms.append(out_hist)
-                plt.plot(bb_filt_out[:],linewidth=.1)
                 sname=sheet_name.replace('/','')
                 names=names.replace('/','')
-                plt.savefig(os.path.join(directory,book_name)+sname+str(j)+'_'+str(i)+names+'.png',dpi=300)
+                axes = plt.gca()
+                axes.set_ylim([-0.2,0.2])
+                plt.savefig(os.path.join(directory,book_name)+str(thresholds)+sname+str(j)+'_'+str(i)+names+'.png',dpi=900)
                 plt.cla()
                 plt.clf()
                 outputter[thresholds][book_name+'_'+sheet_name+str(j)+'_'+str(i)]=[names,out_hist]

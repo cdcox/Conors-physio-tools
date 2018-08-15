@@ -39,6 +39,7 @@ def power_plot(zs,input_array):
     powerPlot.set_xticks(range(0,100,5));#10
     powerPlot.set_xlabel('Frequency (in Hz)') #11
     powerPlot.set_ylabel('Power')#
+    print(np.sum(powe.real))
     return powe.real,fBase
 
 def read_and_parse(directory):
@@ -77,6 +78,13 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=8):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
     y = filtfilt(b, a, data)
     return y
+def reverberation_test(starts_stops):
+    starts=starts_stops[:,0]
+    starts=starts/20
+    ISI=starts[1:]-starts[:-1]
+    this=np.histogram(starts,time_bins)
+    FF=np.var(this[0])/np.mean(this[0])
+    something=np.histogram(ISI)
 
         
 directory = r'C:\Users\colorbox\Documents\ben_data\Optical_stim'
@@ -91,6 +99,7 @@ cit=[]
 #dir_list=dir_list[0:2]
 outputter=AutoVivification()
 nems=[]
+test=[]
 for book_name in dir_list:
     if not('.xlsx' in book_name[-5:]):
         continue
@@ -119,10 +128,11 @@ for book_name in dir_list:
                 epochs=int(np.floor(len(bb_filt_out)/fs/2.5))
                 print(epochs)
                 for jjj in range(epochs-1):
-                    epoched=bb_filt_out[jjj*fs*2.5:(jjj+1)*fs*2.5]
+                    epoched=bb_filt_out[int(jjj*fs*2.5):int((jjj+1)*fs*2.5)]
                     cut=epoched*(epoched<thresholds)
                     powe,fbase=power_plot(fs,cut)
                     cit.append(powe)
+                    test.append(epoched)
                     '''
                     starts_stops = generate_starts_stops(bb_filt_out[:],thresholds)
                     seconds = len(bb_filt_out[:])/fs
@@ -152,6 +162,7 @@ for book_name in dir_list:
                     '''
                     print(sheet_name+' '+book_name+names+str(jjj))
                     nems.append(names+str(jjj))
+
 '''
 out_book=xlwt.Workbook(encoding="utf-8")
 new_threshs=list(outputter.keys())

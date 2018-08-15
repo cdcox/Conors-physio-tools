@@ -78,15 +78,17 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=8):
     return y
 
 def calculate_stuff_about_spikes(starts_stops,out_traits):
-    
     for spike in starts_stops:
-        base_spike_data = bb_filt_out[spike[0]-15:spike[0]+15]
-        traits=[np.max(base_spike_data[:15]),base_spike_data[15],np.max(base_spike_data[:15]),np.max(base_spike_data[:15])-base_spike_data[15]]
+        bottom_dip=15
+        if spike[0]<15:
+            bottom_dip=spike[0]
+        base_spike_data = bb_filt_out[spike[0]-bottom_dip:spike[0]+15]
+        traits=[np.max(base_spike_data[:bottom_dip]),base_spike_data[bottom_dip],np.max(base_spike_data[bottom_dip:]),np.max(base_spike_data[:bottom_dip])-base_spike_data[bottom_dip],np.argmax(base_spike_data[:bottom_dip])]
         out_traits.append(traits)
     return out_traits
 
 directory = r'C:\Users\colorbox\Documents\ben_data\playtime'
-
+kmeanbins=[3,3,3,3]
 fs = 20000
 highcut = 3000
 lowcut = 300
@@ -95,21 +97,37 @@ all_out_names = []
 all_out_histograms = []
 out_traits=[]
 all_spikes=[]
+tempspike=[]
+ou_bin=[]
+binz=[]
+aspike=[]
+outidentity=[]
+tims=[]
 #dir_list=dir_list[0:2]
 outputter=AutoVivification()
+
 for book_name in dir_list:
     if not('.xlsx' in book_name[-5:]):
         continue
     data_book=xlrd.open_workbook(os.path.join(directory,book_name))
+    print('go time')
     snames=data_book.sheet_names()
-    for thresholds in [-0.025]:
+    for thresholds in [-0.1]:
 
-        for sheet_name in snames:
+        for snnn,sheet_name in  enumerate(snames):
+            ou_bin.append([binz,aspike,outidentity,tims])
+            binz=[]
+            aspike=[]
+            outidentity=[]
+            tims=[]
             j=0
             sheet=data_book.sheet_by_name(sheet_name)
             i=0
             #for cols in range(sheet.ncols):
             for cols in range(sheet.ncols):
+                all_spikes=[]
+                out_traits=[]
+                all_tims=[]
                 values=sheet.col_values(cols)
                 names=values[2]
                 values=values[3:]
@@ -117,8 +135,14 @@ for book_name in dir_list:
                     continue
                 if values[0]=='':
                     i=0
+                    ou_bin.append([binz,aspike,outidentity,tims])
+                    binz=[]
+                    aspike=[]
+                    tims=[]
+                    outidentity=[]
                     j+=1
                     continue
+                print(names)
                 values=[x for x in values if x!='']
                 i+=1
                 bb_filt_out = butter_bandpass_filter(values,lowcut,highcut,fs,8)
@@ -137,10 +161,12 @@ for book_name in dir_list:
                     for pairs in ssa:
                         plt.plot([pairs[0],pairs[0]],[minbb,maxbb],'-r',lw=.1)
                         plt.plot([pairs[1],pairs[1]],[minbb,maxbb],'-b',lw=.1)
+                print(len(starts_stops))
                 for ii in range(len(starts_stops)):
                     all_spikes.append(list(bb_filt_out[starts_stops[ii,:][0]-15:starts_stops[ii,:][0]+15]))
+                    all_tims.append(cols)
                 out_traits=calculate_stuff_about_spikes(starts_stops,out_traits)
-                
+                print(len(all_spikes))
                 all_out_names.append(book_name+sheet_name+str(j)+'_'+str(i)+names)
                 all_out_histograms.append(out_hist)
                 sname=sheet_name.replace('/','')
@@ -151,8 +177,18 @@ for book_name in dir_list:
                 plt.cla()
                 plt.clf()
                 outputter[thresholds][book_name+'_'+sheet_name+str(j)+'_'+str(i)]=[names,out_hist]
+                if names=='1st 10s post theta ':
+                    identity=list(np.ones(len(out_traits)))
+                    print(len(starts_stops))
+                else:
+                    identity=list(np.zeros((len(out_traits))))
+                binz=binz+out_traits
+                outidentity=outidentity+identity
+                aspike=aspike+all_spikes
+                tims=tims+all_tims
                 print(sheet_name+' '+book_name+' '+str(j)+'_'+str(i)+'fail')
             print(sheet_name+' '+book_name)
+    ou_bin.append([binz,aspike,outidentity,tims])    
 '''
 out_book=xlwt.Workbook(encoding="utf-8")
 new_threshs=list(outputter.keys())

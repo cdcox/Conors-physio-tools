@@ -90,7 +90,7 @@ def reverberation_test(starts_stops):
     ISI_hist=np.histogram(ISI,time_bins)
     return ISI_hist
 
-directory = r'C:\Users\colorbox\Documents\ben_data'
+directory = r'C:\Users\colorbox\Documents\BenCSV_180809_AGING'
 
 fs = 20000
 highcut = 3000
@@ -102,51 +102,37 @@ all_out_histograms = []
 outputter=AutoVivification()
 isi_outputer=AutoVivification()
 for book_name in dir_list:
-    if not('.xlsx' in book_name[-5:]):
+    if not('.csv' in book_name[-5:]):
         continue
-    data_book=xlrd.open_workbook(os.path.join(directory,book_name))
-    snames=data_book.sheet_names()
-    for thresholds in [-0.1,-0.05,-0.025]:
-        
-        for sheet_name in snames:
-            j=0
-            sheet=data_book.sheet_by_name(sheet_name)
-            i=0
-            for cols in range(sheet.ncols):
-                values=sheet.col_values(cols)
-                names=values[2]
-                values=values[3:]
-                if values[0]==0:
-                    continue
-                if values[0]=='':
-                    i=0
-                    j+=1
-                    continue
-                values=[x for x in values if x!='']
-                i+=1
-                bb_filt_out = butter_bandpass_filter(values,lowcut,highcut,fs,8)
-                starts_stops = generate_starts_stops(bb_filt_out[:],thresholds)
-                seconds = len(bb_filt_out[:])/fs
-                if len(starts_stops)==0:
-                    out_hist=list(np.zeros(np.round(seconds).astype(int))) 
-                    ISI_hist=list(np.zeros(100))
-                else:
-                    out_hist = np.histogram(starts_stops[:,0],np.round(seconds).astype(int),range=[0.,len(bb_filt_out[:])])
-                    ISI_hist=reverberation_test(starts_stops)
-                    ISI_hist=list(ISI_hist[0])
-                    out_hist = list(out_hist[0])
-                all_out_names.append(book_name+sheet_name+str(j)+'_'+str(i)+names)
-                all_out_histograms.append(out_hist)
-                plt.plot(bb_filt_out[:],linewidth=.1)
-                sname=sheet_name.replace('/','')
-                names=names.replace('/','')
-                #plt.savefig(os.path.join(directory,book_name)+sname+str(j)+'_'+str(i)+names+'.png',dpi=300)
-                plt.cla()
-                plt.clf()
-                outputter[thresholds][book_name+'_'+sheet_name+str(j)+'_'+str(i)]=[names,out_hist]
-                isi_outputer[thresholds][book_name+'_'+sheet_name+str(j)+'_'+str(i)]=[names,ISI_hist]
-                print(sheet_name+' '+book_name+' '+str(j)+'_'+str(i)+'fail')
-            print(sheet_name+' '+book_name)
+    values=np.genfromtxt(os.path.join(directory,book_name))
+    values=values[1:]
+    bb_filt_out = butter_bandpass_filter(values,lowcut,highcut,fs,8)
+    SWR_finder = butter_bandpass_filter(values, 2, 45, fs, 2)
+
+    for thresholds in [-0.025,-0.05,-0.1,-0.15,-0.2]:
+        j=0  
+        i=0        
+        i+=1
+        starts_stops = generate_starts_stops(bb_filt_out[:],thresholds)
+        seconds = len(bb_filt_out[:])/fs
+        if len(starts_stops)==0:
+            out_hist=list(np.zeros(np.round(seconds).astype(int))) 
+            ISI_hist=list(np.zeros(100))
+        else:
+            out_hist = np.histogram(starts_stops[:,0],np.round(seconds).astype(int),range=[0.,len(bb_filt_out[:])])
+            ISI_hist=reverberation_test(starts_stops)
+            ISI_hist=list(ISI_hist[0])
+            out_hist = list(out_hist[0])
+        all_out_names.append(book_name)
+        all_out_histograms.append(out_hist)
+        plt.plot(bb_filt_out[:],linewidth=.1)
+        #plt.savefig(os.path.join(directory,book_name)+sname+str(j)+'_'+str(i)+names+'.png',dpi=300)
+        plt.cla()
+        plt.clf()
+        outputter[thresholds][book_name]=[book_name,out_hist]
+        isi_outputer[thresholds][book_name]=[book_name,ISI_hist]
+        print(book_name+'fail')
+        print(book_name)
 
 out_book=xlwt.Workbook(encoding="utf-8")
 new_threshs=list(outputter.keys())
@@ -172,7 +158,7 @@ for nt in new_threshs:
     skeys.sort()
     for kn,nameout in enumerate(skeys):
         temp_out_hist=out_thresh[nameout]
-        sheetout.write(kn,0,nameout+'_'+temp_out_hist[0])
+        sheetout.write(kn,0,nameout)
         temp_out_hist=temp_out_hist[1]
         for knn in range(len(temp_out_hist)):
             sheetout.write(kn,knn+1,int(temp_out_hist[knn]))

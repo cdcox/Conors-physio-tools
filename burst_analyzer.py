@@ -24,9 +24,7 @@ def adaptive_endpoint(data,end,i,base_line):
         while data[end+j]<base_line and (end+j)<next_first:
             j+=1
         return end+j
-        
-    
-    
+
     
 #directory=r'Y:\Weisheng_physiology data\Estrogen\Female\LTP\ERA-MPP\Proestrus vs Diestrus theta burst area\burst'
 directory = input('Enter the directory: ')

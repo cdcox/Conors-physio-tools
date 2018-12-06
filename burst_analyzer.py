@@ -25,7 +25,7 @@ def adaptive_endpoint(data,end,i,base_line):
             j+=1
         return end+j
 
-def calculate(interior_freq,data,temp_first,burst_heights,burst_times):
+def calculate(interior_freq,data,temp_first,burst_heights,burst_times,base_line,for_dots):
     pts_per_burst = int(1000/interior_freq*samp_per_ms)
     pulse_per_burst = 4 #bad to hardcode this
     burst_size = []
@@ -34,10 +34,11 @@ def calculate(interior_freq,data,temp_first,burst_heights,burst_times):
         safe_first = temp_first+10+k*pts_per_burst
         stop = temp_first-10+(k+1)*pts_per_burst
         min_volt = np.min(data[safe_first:stop])
+        for_dots.append(min_volt)
         min_volt_time = np.argmin(data[safe_first:stop])+safe_first
-        burst_heights.append(min_volt)
+        burst_heights.append(min_volt-base_line)
         burst_times.append(min_volt_time)
-    return burst_heights,burst_times
+    return burst_heights,burst_times,for_dots
 #directory=r'Y:\Weisheng_physiology data\Estrogen\Female\LTP\ERA-MPP\Proestrus vs Diestrus theta burst area\burst'
 directory = input('Enter the directory: ')
 file_list=os.listdir(directory)
@@ -70,6 +71,7 @@ for filename in file_list:
     aeocs=[]
     burst_heights = []
     burst_times = []
+    for_dots=[]
     plt.plot(data[0:2000*samp_per_ms],lw=.1)
     print(samp_per_ms)
     for i in range(numb_burst):
@@ -78,7 +80,7 @@ for filename in file_list:
         base_line=np.average(data[base_line_start:temp_first])
         end=int(temp_first+50*samp_per_ms)
         
-        burst_heights,burst_times = calculate(interior_freq,data,temp_first,burst_heights,burst_times)
+        burst_heights,burst_times,for_dots = calculate(interior_freq,data,temp_first,burst_heights,burst_times,base_line,for_dots)
         
         aoc=np.sum(data[temp_first:end]-base_line)
         aend=adaptive_endpoint(data,end,i,base_line)

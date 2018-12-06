@@ -105,6 +105,8 @@ for filename in file_list:
 all_aocs=zip(*all_aocs)
 all_baselines=zip(*all_baselines)
 all_aeocs=zip(*all_aeocs)
+all_burst_times = zip(*all_burst_times)
+all_burst_heights = zip(*all_burst_heights)
 with open(os.path.join(directory,'output.csv'),'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)

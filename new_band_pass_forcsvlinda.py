@@ -12,7 +12,6 @@ import os
 import xlwt
 import scipy.signal as signal
 import csv
-import easygui as eg
 import xlrd
 import xlwt
 
@@ -90,7 +89,7 @@ def reverberation_test(starts_stops):
     ISI_hist=np.histogram(ISI,time_bins)
     return ISI_hist
 
-directory = r'C:\Users\colorbox\Documents\BrittneyCA3Slices\BenCSV_180717'
+directory = r'C:\Users\colorboxy\Documents\Github\bentracevpcsv'
 
 fs = 20000
 highcut = 3000

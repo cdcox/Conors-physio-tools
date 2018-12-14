@@ -54,22 +54,27 @@ def butter_bandpass(lowcut, highcut, fs, order=8):
     b, a = butter(order, [low,high], btype='band')
     return b, a
 
-def generate_starts_stops(filtered_signal,cut): 
+def generate_starts_stops(filtered_signal,cut):
+    #Just get the height from this should work fine#
     down_swings=filtered_signal<cut
     down_swings=down_swings.astype(float)
     one_is_start_count_list=down_swings[1:]-down_swings[:-1]
     filt_one_is_down_count=one_is_start_count_list>0
     starts_of_down=np.where(filt_one_is_down_count)
     starts_stops=[]
+    out_peak=[]
     for starts in starts_of_down[0]:
         i=starts+1
         while filtered_signal[i]<0 and i<len(filtered_signal)-1:
             i+=1
         stops=i      
         zed=np.argmin(filtered_signal[starts:stops])
+        peak=np.max(filtered_signal[starts:stops])
+        out_peak.append(peak)
         starts_stops.append([starts+zed,stops])
     starts_stops=np.array(starts_stops)
-    return starts_stops
+    peak=np.array(out_peak)
+    return starts_stops,peak
  
 def butter_bandpass_filter(data, lowcut, highcut, fs, order=8):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
@@ -89,7 +94,7 @@ def reverberation_test(starts_stops):
     ISI_hist=np.histogram(ISI,time_bins)
     return ISI_hist
 
-directory = r'C:\Users\colorboxy\Documents\Github\bentracevpcsv'
+directory = r'C:\Users\colorboxy\Documents\Multiple_accute_stress\csvs'
 
 fs = 20000
 highcut = 3000
@@ -110,7 +115,7 @@ for book_name in dir_list:
         j=0  
         i=0        
         i+=1
-        starts_stops = generate_starts_stops(bb_filt_out[:],thresholds)
+        starts_stops,peak = generate_starts_stops(bb_filt_out[:],thresholds)
         seconds = len(bb_filt_out[:])/fs
         if len(starts_stops)==0:
             out_hist=list(np.zeros(np.round(seconds).astype(int))) 

@@ -8,15 +8,23 @@ import os
 import csv
 import xlwt
 
-def excel_data_writer(variable,sheet_name,workbook):
-    sheet_temp=workbook.add_sheet(sheet_name)
-    for rn,row in enumerate(variable):
-        sheet_temp.write(0,rn,f_list[rn])
-        for cn, col in enumerate(row):
-            sheet_temp.write(cn+1,rn,col)
+def excel_data_writer(temp_dict,target_list,workbook,i):
+    f_names = temp_dict.keys()
+    for fn,f_name in enumerate(f_names):
+        sheet_temp.write(fn,0,f_name)
+        for tn,tar in enumerate(target_list):
+            numb = temp_dict[f_name][tar]
+            sheet_temp.write(fn,tn+1,numb)
         
-        
+target_list = ['wave_amp','wave_area','median_ibi','median_freq','Total Frequency']
 workbook=xlwt.Workbook()
+i=0
+threshs = master_dict.keys()
+for ttt in threshs:
+    sheet_temp=workbook.add_sheet(str(ttt))
+    temp_dict = master_dict[ttt]
+    excel_data_writer(temp_dict,target_list,workbook,sheet_temp)
+r'''
 excel_data_writer(master_freq,'freq',workbook)
 excel_data_writer(master_median,'areas',workbook)
 excel_data_writer(master_power_real,'mean of maxpoints',workbook)
@@ -26,7 +34,7 @@ excel_data_writer(slope_real,'slopes',workbook)
 excel_data_writer(master_mean_tau,'tau',workbook)
 excel_data_writer(master_mean_a,'A',workbook)
 excel_data_writer(time_between_real,'decay time', workbook)
-'''
+
 directory=r'C:\Users\colorbox\Documents\ben_dump\freq.csv'
 myfile = open(directory, 'wb')
 wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
@@ -62,10 +70,10 @@ wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
 wr.writerows(slope_real)
 myfile.close()
 '''
-out_dir=r'Y:\Ben\Ben_sharp_waves\August & september 2017'
+out_dir=r'C:\Users\colorboxy\Documents\Github\ben_Traceexp'
 
 workbook.save(os.path.join(out_dir,'alldata.xls'))
-
+r'''
 for fn,files in enumerate(f_list):
     file_name=files.split('\\')[-1][:-4]
     #out_dir=r'C:\Users\colorbox\Documents\ben_dump'
@@ -92,3 +100,4 @@ for fn,files in enumerate(f_list):
     wr=csv.writer(myfile, quoting=csv.QUOTE_ALL)
     wr.writerows(print_out_array)
     myfile.close()
+'''

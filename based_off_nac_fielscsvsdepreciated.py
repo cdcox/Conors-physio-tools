@@ -120,7 +120,7 @@ def find_actutal_starts_stops(old_stop,starts,sN,fs,fstarts):
             move+=1
     return ttstart,ttstop,fstarts
 
-directory=r'C:\Users\colorboxy\Documents\Github\bentracevpcsv'
+directory=r'C:\Users\colorboxy\Documents\Multiple_accute_stress\csvs'
 f_list=glob.glob(directory+'\\*csv')
 f_list2=f_list
 master_dict = AutoVivification()

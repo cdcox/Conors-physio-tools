@@ -165,9 +165,23 @@ def moving_average(a, n=3) :
     ret = np.cumsum(a, dtype=float)
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1:] / n
+
+def make_avg_SPW(useful,meta_SPW):
+    useful_arr=np.array(useful)
+    left_pad = np.max(useful_arr,0)[0]
+    right_pad = np.max(useful_arr[:,1]-useful_arr[:,0])
+    required_len = left_pad+right_pad
+    output = []
+    for spnn,spw in enumerate(meta_SPW):
+        temp_l_pad = left_pad-useful[spnn][0]
+        temp_r_pad = required_len-useful[spnn][1]-temp_l_pad
+        spw = np.pad(spw,[temp_l_pad,temp_r_pad],'constant')
+        output.append(spw)
+    out_a=np.array(output)
+    return np.average(out_a,0)
 #your code here
 #folderfile load file 1 data and zed = that data and loop it -- genfromtxt
-indir = r'C:\Users\colorboxy\Documents\Github\bentracevpcsv'
+indir = r'C:\Users\colorboxy\Documents\Github\forkaren\output'
 
 m_wave_amp_list=[]
 m_wave_area_list=[]
@@ -179,10 +193,11 @@ m_time_between_list=[]
 m_slope_list=[]
 outfreq=[]
 file_list=[]
-threshs=[.1,.2,.05,.15,.025]
+threshs=[1,2,4]
 filelist=os.listdir(indir)
 f_n=len(filelist)
 master_dict = AutoVivification()
+#filelist = filelist[2:3]
 for fnn,filenames in enumerate(filelist):
     if "csv" in filenames:     
         zed = np.genfromtxt(os.path.join(indir,filenames),delimiter= ',')
@@ -207,6 +222,8 @@ for fnn,filenames in enumerate(filelist):
             #subtracter=subtracter[1:]
             #convolved_signal=convolved_signal-subtracter
             zed
+            meta_SPW = []
+            useful = []
             frequency=[]
             avg_areas=[]
             power_kind=[]
@@ -242,7 +259,7 @@ for fnn,filenames in enumerate(filelist):
             r_value_list=[]
     
             #meaner=np.mean(led)
-            meaner=np.mean(led)-.003
+            meaner=np.mean(led)+.003
             #print 'check'+str(eN)+'out of'+str(epochs)
             old_stop=0
             fstops=[]
@@ -301,11 +318,12 @@ for fnn,filenames in enumerate(filelist):
                 else:
                     a_list.append(popt[0])
                     tau_list.append(popt[2])
-                
+                print(ttstop-ttstart)
                 slope_list.append(slope)
                 time_between_list.append(time_between)
                 r_value_list.append(r_value)
-                
+                meta_SPW.append(zzed[ttstart:ttstop])
+                useful.append([np.argmax(zzed[ttstart:ttstop]),len(zzed[ttstart:ttstop])])
                 bits=ked[ttstart:ttstop]
                 zero_crossings = np.where(np.diff(np.signbit(bits)))[0]
                 
@@ -325,6 +343,11 @@ for fnn,filenames in enumerate(filelist):
             master_dict[thresh][filenames]['mean_Time_between']=(np.nanmean(time_between_list)) #correct but usless
             master_dict[thresh][filenames]['slopes']=(np.nanmean(slope_list)) #needs fix
             
+            if len(useful)!=0:
+                avg_SPW = make_avg_SPW(useful,meta_SPW)
+                master_dict[thresh][filenames]['avg_SPW']=avg_SPW
+            else:
+                print('no avgspw')
             #file_list.append(filenames)
     '''
     user_dict={'wave_amp': m_wave_amp_list, 'wave_area':m_wave_area_list, 

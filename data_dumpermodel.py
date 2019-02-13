@@ -7,14 +7,69 @@ Created on Tue May 26 17:52:07 2015
 import os
 import csv
 import xlsxwriter
+import numpy as np
 
-def excel_data_writer(temp_dict,target_list,workbook,i):
+class AutoVivification(dict):
+    """Implementation of perl's autovivification feature."""
+    def __getitem__(self, item):
+        try:
+            return dict.__getitem__(self, item)
+        except KeyError:
+            value = self[item] = type(self)()
+            return value
+        
+def parse_name(name,redict,temp_dict):
+    token = name.split('-')
+    values = token[1]
+    if token[2]=='':
+        t = '-'+token[3]
+    else:
+        t = token[2]
+    redict[values][t][len(redict[values][t])] = temp_dict[name]
+    return redict
+
+def excel_data_writer(temp_dict,target_list,workbook,i,redict):
     f_names = temp_dict.keys()
     for fn,f_name in enumerate(f_names):
-        sheet_temp.write(fn,0,f_name)
+        sheet_temp.write(fn+1,0,f_name)
+        redict = parse_name(f_name,redict,temp_dict)
         for tn,tar in enumerate(target_list):
             numb = temp_dict[f_name][tar]
-            sheet_temp.write(fn,tn+1,numb)
+            sheet_temp.write(fn+1,tn+1,numb)
+    return redict,fn
+
+def write_excel_final_rows(redict,target_list,workbook,sheet_temp,fn):
+    group_names=redict.keys()
+    i=0
+    for gn,g_name in enumerate(group_names):
+        var_all_avg = []
+        var_all_std = []
+
+        g_t_key = redict[g_name].keys()
+        for gtn,gtk in enumerate(g_t_key):
+            i+=1
+            sheet_temp.write(fn+i*2,0,g_name)
+            sheet_temp.write(fn+i*2+1,0,g_name)
+            sheet_temp.write(fn+i*2,1,'mean')
+            sheet_temp.write(fn+i*2+1,1,'var')
+            sheet_temp.write(fn+i*2,2,gtk)
+            sheet_temp.write(fn+i*2+1,2,gtk)
+            for tn, tar in enumerate(target_list):
+                internals= redict[g_name][gtk]
+                n_ints = internals.keys()
+                var_data = []
+                for nn, n_int in enumerate(list(n_ints)):
+                    var_data.append(internals[n_int][tar])
+                var_data=np.array(var_data)
+                var_avg=np.nanmean(var_data)
+                var_all_avg.append(var_avg)
+                var_std = np.nanstd(var_data)
+                var_all_std.append(var_std)
+                sheet_temp.write(fn+i*2,tn+3,var_avg)
+                sheet_temp.write(fn+i*2+1,tn+3,var_std)
+                print(fn+i*2)
+    return var_data
+
 def excel_long_writer(master_dict,sheet_temp):
     t_dict=master_dict[0.05]
     f_names = t_dict.keys()
@@ -32,9 +87,15 @@ threshs = master_dict.keys()
 sheet_temp = workbook.add_worksheet('avgSPW.05')
 excel_long_writer(master_dict,sheet_temp)
 for ttt in threshs:
+    if ttt<1:
+        continue
+    redict = AutoVivification()
     sheet_temp=workbook.add_worksheet(str(ttt))
+    for tn, tar in enumerate(target_list):
+        sheet_temp.write(0,tn+1,tar)
     temp_dict = master_dict[ttt]
-    excel_data_writer(temp_dict,target_list,workbook,sheet_temp)
+    redict,fn = excel_data_writer(temp_dict,target_list,workbook,sheet_temp,redict)
+    write_excel_final_rows(redict,target_list,workbook,sheet_temp,fn)
     
 workbook.close()
 r'''

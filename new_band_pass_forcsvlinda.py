@@ -69,7 +69,7 @@ def generate_starts_stops(filtered_signal,cut):
             i+=1
         stops=i      
         zed=np.argmin(filtered_signal[starts:stops])
-        peak=np.max(filtered_signal[starts:stops])
+        peak=np.min(filtered_signal[starts:stops])
         out_peak.append(peak)
         starts_stops.append([starts+zed,stops])
     starts_stops=np.array(starts_stops)
@@ -94,7 +94,7 @@ def reverberation_test(starts_stops):
     ISI_hist=np.histogram(ISI,time_bins)
     return ISI_hist
 
-directory = r'C:\Users\colorboxy\Documents\Multiple_accute_stress\csvs'
+directory = r'C:\Users\colorboxy\Documents\Text files_AGING_20Hz_feb2019\csvs'
 
 fs = 20000
 highcut = 3000
@@ -105,6 +105,7 @@ all_out_histograms = []
 #dir_list=dir_list[0:2]
 outputter=AutoVivification()
 isi_outputer=AutoVivification()
+peak_outputer = AutoVivification()
 for book_name in dir_list:
     if not('.csv' in book_name[-5:]):
         continue
@@ -120,11 +121,16 @@ for book_name in dir_list:
         if len(starts_stops)==0:
             out_hist=list(np.zeros(np.round(seconds).astype(int))) 
             ISI_hist=list(np.zeros(100))
+            peak_hist=list(np.zeros(len(list(np.arange(0,-0.3,-.01)))))
         else:
+            if seconds<1:
+                seconds=1
             out_hist = np.histogram(starts_stops[:,0],np.round(seconds).astype(int),range=[0.,len(bb_filt_out[:])])
+            peak_hist = np.histogram(peak,np.arange(-0.3,0,.01))
             ISI_hist=reverberation_test(starts_stops)
             ISI_hist=list(ISI_hist[0])
             out_hist = list(out_hist[0])
+            peak_hist = list(peak_hist[0])
         all_out_names.append(book_name)
         all_out_histograms.append(out_hist)
         plt.plot(bb_filt_out[:],linewidth=.1)
@@ -133,6 +139,7 @@ for book_name in dir_list:
         plt.clf()
         outputter[thresholds][book_name]=[book_name,out_hist]
         isi_outputer[thresholds][book_name]=[book_name,ISI_hist]
+        peak_outputer[thresholds][book_name]=[book_name,peak_hist]
         print(book_name+'fail')
         print(book_name)
 
@@ -165,3 +172,18 @@ for nt in new_threshs:
         for knn in range(len(temp_out_hist)):
             sheetout.write(kn,knn+1,int(temp_out_hist[knn]))
     out_book.save(os.path.join(directory,'ISIhisto.xls'))
+    
+out_book=xlwt.Workbook(encoding="utf-8")
+new_threshs=list(peak_outputer.keys())
+for nt in new_threshs:
+    out_thresh=peak_outputer[nt]
+    sheetout=out_book.add_sheet('sheet_'+str(nt))
+    skeys=list(out_thresh.keys())
+    skeys.sort()
+    for kn,nameout in enumerate(skeys):
+        temp_out_hist=out_thresh[nameout]
+        sheetout.write(kn,0,nameout)
+        temp_out_hist=temp_out_hist[1]
+        for knn in range(len(temp_out_hist)):
+            sheetout.write(kn,knn+1,int(temp_out_hist[knn]))
+    out_book.save(os.path.join(directory,'peakhisto.xls'))

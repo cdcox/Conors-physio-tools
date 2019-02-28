@@ -94,7 +94,7 @@ def reverberation_test(starts_stops):
     ISI_hist=np.histogram(ISI,time_bins)
     return ISI_hist
 
-directory = r'C:\Users\colorboxy\Documents\Text files_AGING_20Hz_feb2019\csvs'
+directory = r'C:\Users\colorboxy\Documents\aliza_Training\csvs'
 
 fs = 20000
 highcut = 3000
@@ -140,7 +140,7 @@ for book_name in dir_list:
         outputter[thresholds][book_name]=[book_name,out_hist]
         isi_outputer[thresholds][book_name]=[book_name,ISI_hist]
         peak_outputer[thresholds][book_name]=[book_name,peak_hist]
-        print(book_name+'fail')
+        print(book_name+'yay_aliza')
         print(book_name)
 
 out_book=xlwt.Workbook(encoding="utf-8")

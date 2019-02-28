@@ -8,8 +8,8 @@ Created on Tue Dec  4 10:56:19 2018
 import csv
 import numpy as np
 import os
-in_dir = r'C:\Users\colorboxy\Documents\Text files_AGING_20Hz_feb2019'
-out_dir= r'C:\Users\colorboxy\Documents\Text files_AGING_20Hz_feb2019\csvs'
+in_dir = r'C:\Users\colorboxy\Documents\aliza_Training'
+out_dir= r'C:\Users\colorboxy\Documents\aliza_Training\csvs'
 f_list = os.listdir(in_dir)
 for file_name in f_list:
     with open(os.path.join(in_dir,file_name),'r') as f:

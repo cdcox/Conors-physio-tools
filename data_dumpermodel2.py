@@ -96,18 +96,35 @@ def write_slopes(working_dict):
     up_split = values[values<0]
     base_keys = working_dict['0'].keys()
 
+def strictly_increasing(L):
+    return all(x<y for x, y in zip(L, L[1:]))
+
+def strictly_decreasing(L):
+    return all(x>y for x, y in zip(L, L[1:]))
+
 def write_excel_final_rows(redict,target_list,workbook,sheet_temp,fn):
     group_names=redict.keys()
     i=0
+    average_vals=AutoVivification()
     for gn,g_name in enumerate(group_names):
-        var_all_avg = []
-        var_all_std = []
+
         g_t_key = redict[g_name].keys()
         for gtn,gtk in enumerate(g_t_key):
             group_names2=redict[g_name][gtk].keys()
+            if abs(round(float(gtk),2))==0.3:
+                print(gtk)
+                continue
             for gn2,g_name2 in enumerate(group_names2):
-                g_t_key_2=redict[g_name][gtk][g_name2].keys()
+                g_t_key_2=list(redict[g_name][gtk][g_name2].keys())
+                var_all_avg = AutoVivification()
+                var_all_std  = AutoVivification()
+                g_t_key_2.sort()
+                #g_t_key_numb=np.array([float(x) for x in g_t_key_2])
+                #g_t_key_up=g_t_key>-0.0001
+                #g_t_key_down=g_t_key<0.0001
                 for gtn2,gtk2 in enumerate(g_t_key_2):
+                    if abs(round(float(gtk2),2))==0.3:
+                        continue
                     write_slopes(redict[g_name][gtk][g_name2])
                     if g_name==g_name2:
                         gtk2t=1000
@@ -124,23 +141,73 @@ def write_excel_final_rows(redict,target_list,workbook,sheet_temp,fn):
                     sheet_temp.write(fn+i*2+1,3,g_name2)
                     sheet_temp.write(fn+i*2,4,gtk2t)
                     sheet_temp.write(fn+i*2+1,4,gtk2t)
-                    super_temp_dict = AutoVivification()
                     for tn, tar in enumerate(target_list):
                         internals= redict[g_name][gtk][g_name2][gtk2]
                         n_ints = internals.keys()
-                        var_data = []
-                        for nn, n_int in enumerate(list(n_ints)):
+                        n_ints=list(n_ints)
+                        var_data=[]
+                        for nn, n_int in enumerate(n_ints):
                             var_data.append(internals[n_int][tar])
                         var_data=np.array(var_data)
                         var_avg=np.nanmean(var_data)
-                        var_all_avg.append(var_avg)
                         var_std = np.nanstd(var_data)
-                        var_all_std.append(var_std)
+                        '''
+                        try:
+                            var_all_avg[target_list].append(var_avg)
+                            var_all_std[target_list].append(var_std)
+                        except:
+                            var_all_avg[target_list]=[var_avg]
+                            var_all_std[target_list]=[var_std]
+                        '''
                         sheet_temp.write(fn+i*2,tn+5,var_avg)
                         sheet_temp.write(fn+i*2+1,tn+5,var_std)
-                        super_temp_dict[tar]
-                        print(fn+i*2)
-    return var_data
+                        if float(gtk)==0.0 and (float(gtk2)==0.0 or gtk2t==1000):
+                            print('this')
+                            try:
+                                average_vals[tar]['mean'].append(var_avg)
+                                average_vals[tar]['var'].append(var_std)
+                            except:
+                                average_vals[tar]['mean']=[var_avg]
+                                average_vals[tar]['var']=[var_std]
+                    '''
+                    for tn, tar in enumerate(target_list):
+                        average_array = var_all_avg[tar]
+                        std_array = var_all_std[tar]
+                        up_check_a=average_array[g_t_key_up]
+                        down_check_a=average_array[g_t_key_down]
+                        i+=1
+                        z=strictly_increasing(up_check_a)-strictly_decreasing(up_check_a)
+                        z2=strictly_increasing(down_check_a)-strictly_decreasing(down_check_a)
+                        sheet_temp.write(fn+i*2,1,g_name)
+                        sheet_temp.write(fn+i*2+1,1,g_name)                    
+                        sheet_temp.write(fn+i*2,0,'meanslope')
+                        sheet_temp.write(fn+i*2+1,0,'varslope')
+                        sheet_temp.write(fn+i*2,2,gtk)
+                        sheet_temp.write(fn+i*2+1,2,gtk)
+                        sheet_temp.write(fn+i*2,3,g_name2)
+                        sheet_temp.write(fn+i*2+1,3,g_name2)
+                        sheet_temp.write(fn+i*2,4,gtk2t)
+                        sheet_temp.write(fn+i*2+1,4,gtk2t)
+                        sheet_temp.write(fn+i*2,tn+5,z)
+                        sheet_temp.write(fn+i*2,tn+5,z2)
+                    '''
+                #print(fn+i*2)
+    i+=1
+    for tn,tar in enumerate(target_list):
+        
+        sheet_temp.write(fn+i*2,1,'REAL')
+        sheet_temp.write(fn+i*2+1,1,'REAL')                    
+        sheet_temp.write(fn+i*2,0,'mean')
+        sheet_temp.write(fn+i*2+1,0,'var')
+        sheet_temp.write(fn+i*2,2,'R')
+        sheet_temp.write(fn+i*2+1,2,'R')
+        sheet_temp.write(fn+i*2,3,'REAL')
+        sheet_temp.write(fn+i*2+1,3,'REAL')
+        sheet_temp.write(fn+i*2,4,'R')
+        sheet_temp.write(fn+i*2+1,4,'R')
+        sheet_temp.write(fn+i*2,tn+5,np.nanmean(average_vals[tar]['mean']))
+        sheet_temp.write(fn+i*2+1,tn+5,np.nanmean(average_vals[tar]['var']))
+    #return var_data
 
 def excel_long_writer(master_dict,sheet_temp):
     t_dict=master_dict[0.05]

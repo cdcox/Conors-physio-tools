@@ -94,11 +94,11 @@ def reverberation_test(starts_stops):
     ISI_hist=np.histogram(ISI,time_bins)
     return ISI_hist
 
-directory = r'C:\Users\colorboxy\Documents\youshenginvivo\csvs'
-
+directory = r'C:\Users\colorboxy\Documents\16th May 2019 stress\csvs'
 fs = 20000
 highcut = 3000
 lowcut = 300
+flip=1
 dir_list = os.listdir(directory)
 all_out_names = []
 all_out_histograms = []
@@ -110,9 +110,9 @@ for book_name in dir_list:
     if not('.csv' in book_name[-5:]):
         continue
     values=np.genfromtxt(os.path.join(directory,book_name))
-    values=values[1:]
+    values=values[1:]*flip
     bb_filt_out = butter_bandpass_filter(values,lowcut,highcut,fs,8)
-    for thresholds in [-0.025,-0.05,-0.1,-0.15,-0.2]:
+    for thresholds in [-0.01,-0.025,-0.05,-0.1,-0.15,-0.2]:
         j=0  
         i=0        
         i+=1
@@ -133,8 +133,10 @@ for book_name in dir_list:
             peak_hist = list(peak_hist[0])
         all_out_names.append(book_name)
         all_out_histograms.append(out_hist)
+        
         plt.plot(bb_filt_out[:],linewidth=.1)
-        #plt.savefig(os.path.join(directory,book_name)+sname+str(j)+'_'+str(i)+names+'.png',dpi=300)
+        plt.ylim(-0.2,0.2)
+        plt.savefig(os.path.join(directory,book_name)+'.png',dpi=300)
         plt.cla()
         plt.clf()
         outputter[thresholds][book_name]=[book_name,out_hist]

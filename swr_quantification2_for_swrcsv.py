@@ -181,7 +181,7 @@ def make_avg_SPW(useful,meta_SPW):
     return np.average(out_a,0)
 #your code here
 #folderfile load file 1 data and zed = that data and loop it -- genfromtxt
-indir = r'C:\Users\colorboxy\Documents\Github\forkaren\out2put'
+indir = r'C:\Users\colorboxy\Documents\Fragile X\csvs'
 
 m_wave_amp_list=[]
 m_wave_area_list=[]
@@ -193,7 +193,7 @@ m_time_between_list=[]
 m_slope_list=[]
 outfreq=[]
 file_list=[]
-threshs=[1,2,4]
+threshs=[.1,.2,.05,.15,.025]
 filelist=os.listdir(indir)
 f_n=len(filelist)
 master_dict = AutoVivification()

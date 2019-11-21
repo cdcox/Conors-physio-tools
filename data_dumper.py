@@ -24,7 +24,7 @@ def excel_long_writer(master_dict,sheet_temp):
         for tn,tar in enumerate(data):
             sheet_temp.write(tn+1,fn,tar)
     
-out_dir=r'C:\Users\colorboxy\Documents\Fragile X\csvs'       
+out_dir=r'C:\Users\colorboxy\Documents\Text files_AGING_20Hz_feb2019\csvs'       
 target_list = ['wave_amp','wave_area','median_ibi','median_freq','Total Frequency']
 workbook=xlsxwriter.Workbook(os.path.join(out_dir,'alldata.xlsx'),{'nan_inf_to_errors': True})
 i=0

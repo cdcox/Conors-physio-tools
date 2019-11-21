@@ -14,7 +14,7 @@ import scipy.signal as signal
 import csv
 import xlrd
 import xlwt
-
+import xlsxwriter
 
 class AutoVivification(dict):
     """Implementation of perl's autovivification feature."""
@@ -88,13 +88,13 @@ def reverberation_test(starts_stops):
     starts=starts_stops[:,0]
     starts=starts/(fs/1000)
     ISI=starts[1:]-starts[:-1]
-    time_bins=np.arange(0,1000,20)
+    #time_bins=np.arange(0,1000,20)
     #this=np.histogram(starts,time_bins)
     #FF=np.var(this[0])/np.mean(this[0])
-    ISI_hist=np.histogram(ISI,time_bins)
-    return ISI_hist
+    #ISI_hist=np.histogram(ISI,time_bins)
+    return ISI
 
-directory = r'C:\Users\colorboxy\Documents\DG-CA3\csvs'
+directory = r'C:\Users\colorboxy\Documents\novtracedata\csvs' 
 fs = 20000
 highcut = 3000
 lowcut = 300
@@ -120,15 +120,17 @@ for book_name in dir_list:
         seconds = len(bb_filt_out[:])/fs
         if len(starts_stops)==0:
             out_hist=list(np.zeros(np.round(seconds).astype(int))) 
-            ISI_hist=list(np.zeros(100))
+            if thresholds<-0.02:
+                ISI=[0]
             peak_hist=list(np.zeros(len(list(np.arange(0,-0.3,-.01)))))
         else:
             if seconds<1:
                 seconds=1
             out_hist = np.histogram(starts_stops[:,0],np.round(seconds).astype(int),range=[0.,len(bb_filt_out[:])])
             peak_hist = np.histogram(peak,np.arange(-0.3,0,.01))
-            ISI_hist=reverberation_test(starts_stops)
-            ISI_hist=list(ISI_hist[0])
+            if thresholds<-0.02:
+                ISI=reverberation_test(starts_stops)
+                ISI=list(ISI)
             out_hist = list(out_hist[0])
             peak_hist = list(peak_hist[0])
         all_out_names.append(book_name)
@@ -140,7 +142,8 @@ for book_name in dir_list:
         plt.cla()
         plt.clf()
         outputter[thresholds][book_name]=[book_name,out_hist]
-        isi_outputer[thresholds][book_name]=[book_name,ISI_hist]
+        if thresholds<-0.04:
+            isi_outputer[thresholds][book_name]=[book_name,ISI]
         peak_outputer[thresholds][book_name]=[book_name,peak_hist]
         print(book_name+'')
         print(book_name)
@@ -160,20 +163,20 @@ for nt in new_threshs:
             sheetout.write(kn,knn+1,int(temp_out_hist[knn]))
     out_book.save(os.path.join(directory,'total_hist_out_all_thresh.xls'))
     
-out_book=xlwt.Workbook(encoding="utf-8")
+out_book=xlsxwriter.Workbook(os.path.join(directory,'ISIhisto.xls'))
 new_threshs=list(isi_outputer.keys())
 for nt in new_threshs:
     out_thresh=isi_outputer[nt]
-    sheetout=out_book.add_sheet('sheet_'+str(nt))
+    sheetout=out_book.add_worksheet('sheet_'+str(nt))
     skeys=list(out_thresh.keys())
     skeys.sort()
     for kn,nameout in enumerate(skeys):
         temp_out_hist=out_thresh[nameout]
-        sheetout.write(kn,0,nameout)
+        sheetout.write(0,kn,nameout)
         temp_out_hist=temp_out_hist[1]
         for knn in range(len(temp_out_hist)):
-            sheetout.write(kn,knn+1,int(temp_out_hist[knn]))
-    out_book.save(os.path.join(directory,'ISIhisto.xls'))
+            sheetout.write(knn+1,kn,int(temp_out_hist[knn]))
+out_book.close()
     
 out_book=xlwt.Workbook(encoding="utf-8")
 new_threshs=list(peak_outputer.keys())

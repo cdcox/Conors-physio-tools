@@ -181,7 +181,7 @@ def make_avg_SPW(useful,meta_SPW):
     return np.average(out_a,0)
 #your code here
 #folderfile load file 1 data and zed = that data and loop it -- genfromtxt
-indir = r'C:\Users\colorboxy\Documents\CA3-CA1\csvs\test'
+indir = r'C:\Users\colorboxy\Documents\Github\forkaren\out2put'
 
 m_wave_amp_list=[]
 m_wave_area_list=[]
@@ -193,8 +193,7 @@ m_time_between_list=[]
 m_slope_list=[]
 outfreq=[]
 file_list=[]
-polarity_flip=1
-threshs=[.1,.2,.05,.15,.025,.02,.01]
+threshs=[1,2,4]
 filelist=os.listdir(indir)
 f_n=len(filelist)
 master_dict = AutoVivification()
@@ -202,7 +201,6 @@ master_dict = AutoVivification()
 for fnn,filenames in enumerate(filelist):
     if "csv" in filenames:     
         zed = np.genfromtxt(os.path.join(indir,filenames),delimiter= ',')
-        zed=zed*polarity_flip
         #initialization
         highcut=500
         lowcut=150
@@ -344,8 +342,6 @@ for fnn,filenames in enumerate(filelist):
             master_dict[thresh][filenames]['mean_tau']=(np.nanmean(tau_list)) #needsfix
             master_dict[thresh][filenames]['mean_Time_between']=(np.nanmean(time_between_list)) #correct but usless
             master_dict[thresh][filenames]['slopes']=(np.nanmean(slope_list)) #needs fix
-            master_dict[thresh][filenames]['all_starts']=starts
-            master_dict[thresh][filenames]['all_stops']=stops
             
             if len(useful)!=0:
                 avg_SPW = make_avg_SPW(useful,meta_SPW)

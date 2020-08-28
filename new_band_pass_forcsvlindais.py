@@ -94,7 +94,7 @@ def reverberation_test(starts_stops):
     #ISI_hist=np.histogram(ISI,time_bins)
     return ISI
 
-directory = r'C:\Users\colorboxy\Documents\novtracedata\csvs' 
+directory = r'C:\Users\colorboxy\Documents\AD mouse(APP KI)\csvs' 
 fs = 20000
 highcut = 3000
 lowcut = 300
@@ -102,7 +102,7 @@ flip=1
 dir_list = os.listdir(directory)
 all_out_names = []
 all_out_histograms = []
-#dir_list=dir_list[0:3]
+#dir_list=dir_list[23:25]
 outputter=AutoVivification()
 isi_outputer=AutoVivification()
 peak_outputer = AutoVivification()
@@ -113,6 +113,7 @@ for book_name in dir_list:
     values=values[1:]*flip
     bb_filt_out = butter_bandpass_filter(values,lowcut,highcut,fs,8)
     for thresholds in [-0.01,-0.025,-0.05,-0.1,-0.15,-0.2]:
+    #for thresholds in [-0.01,-0.025,-0.05]:
         j=0  
         i=0        
         i+=1
@@ -142,7 +143,7 @@ for book_name in dir_list:
         plt.cla()
         plt.clf()
         outputter[thresholds][book_name]=[book_name,out_hist]
-        if thresholds<-0.04:
+        if thresholds<-0.02:
             isi_outputer[thresholds][book_name]=[book_name,ISI]
         peak_outputer[thresholds][book_name]=[book_name,peak_hist]
         print(book_name+'')

@@ -181,7 +181,7 @@ def make_avg_SPW(useful,meta_SPW):
     return np.average(out_a,0)
 #your code here
 #folderfile load file 1 data and zed = that data and loop it -- genfromtxt
-indir = r'C:\Users\colorboxy\Documents\CA3-CA1\csvs\test'
+indir = r'C:\Users\colorboxy\Documents\AD mouse(APP KI)\csvs'
 
 m_wave_amp_list=[]
 m_wave_area_list=[]
@@ -194,13 +194,15 @@ m_slope_list=[]
 outfreq=[]
 file_list=[]
 polarity_flip=1
-threshs=[.1,.2,.05,.15,.025,.02,.01]
+#threshs=[.1,.2,.05,.15,.025,.02,.01]
+threshs=[.05]
 filelist=os.listdir(indir)
 f_n=len(filelist)
 master_dict = AutoVivification()
-#filelist = filelist[2:3]
+# filelist = filelist[0:4]
+
 for fnn,filenames in enumerate(filelist):
-    if "csv" in filenames:     
+    if "csv" in filenames[-4:]:     
         zed = np.genfromtxt(os.path.join(indir,filenames),delimiter= ',')
         zed=zed*polarity_flip
         #initialization

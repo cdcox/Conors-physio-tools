@@ -28,6 +28,7 @@ import scipy.signal as signal
 import csv
 import xlrd
 import xlwt
+import xlsxwriter
 
 class AutoVivification(dict):
     """Implementation of perl's autovivification feature."""
@@ -179,9 +180,78 @@ def make_avg_SPW(useful,meta_SPW):
         output.append(spw)
     out_a=np.array(output)
     return np.average(out_a,0)
+
+def excel_data_writer(temp_dict,target_list,workbook,i):
+    f_names = temp_dict.keys()
+    for fn,f_name in enumerate(f_names):
+        sheet_temp.write(fn,0,f_name)
+        for tn,tar in enumerate(target_list):
+            numb = temp_dict[f_name][tar]
+            sheet_temp.write(fn,tn+1,numb)
+def excel_long_writer(master_dict,sheet_temp):
+    t_dict=master_dict[0.05]
+    f_names = t_dict.keys()
+    for fn,f_name in enumerate(f_names):
+        sheet_temp.write(0,fn,f_name)
+        data = t_dict[f_name]['avg_SPW']
+        for tn,tar in enumerate(data):
+            sheet_temp.write(tn+1,fn,tar)
+
+def make_that_CA3_CA1_thing(master_dict,sheet_temp):
+    
+    t_dict=master_dict[0.05]
+    f_names = list(t_dict.keys())
+    sheet_temp.write(0,0,'file_name')
+    sheet_temp.write(0,1,'avg_dist_between peaks')
+    sheet_temp.write(0,2,'std_dist_between peaks')
+    sheet_temp.write(0,3,'percent_CA3')
+    sheet_temp.write(0,4,'percent_CA1')
+    sheet_temp.write(0,5,'total_CA3')
+    sheet_temp.write(0,6,'total_CA1')
+    for fn in range(0,len(f_names),2):
+        CA3 = np.array(master_dict[.05][f_names[fn]]['all_starts'])
+        CA1 = np.array(master_dict[.05][f_names[fn+1]]['all_starts'])
+        fill_in = np.zeros([len(CA3),len(CA1)])
+        
+        for inn,stops in enumerate(CA3):
+            for jnn,starts in enumerate(CA1):
+                fill_in[inn,jnn] = starts-stops
+        
+        temp = (fill_in>0)*fill_in
+        if np.all(np.isnan(temp)):
+
+            sheet_temp.write(int(fn/2)+1,0,f_names[fn])
+            sheet_temp.write(int(fn/2)+1,1,0)
+            sheet_temp.write(int(fn/2)+1,2,0)
+            sheet_temp.write(int(fn/2)+1,3,0)
+            sheet_temp.write(int(fn/2)+1,4,0)
+            sheet_temp.write(int(fn/2)+1,5,np.shape(temp)[0])
+            sheet_temp.write(int(fn/2)+1,6,np.shape(temp)[1])
+            
+            continue
+        temp[temp==0] = np.nan
+        
+        CA1_dists = np.nanmin(temp,1)
+        CA3_dists = np.nanmin(temp,0)
+        pairedCA3 = CA3_dists<2000
+        pairedCA1 = CA1_dists<2000
+        relevant_avg = np.nanmean(CA1_dists[pairedCA1])
+        relevent_stdev = np.nanstd(CA1_dists[pairedCA1])
+        
+        percent_CA3 = np.sum(pairedCA3)/len(CA3_dists)*100
+        percent_CA1 = np.sum(pairedCA1)/len(CA1_dists)*100   
+    
+        sheet_temp.write(int(fn/2)+1,0,f_names[fn])
+        sheet_temp.write(int(fn/2)+1,1,relevant_avg/20)
+        sheet_temp.write(int(fn/2)+1,2,relevent_stdev/20)
+        sheet_temp.write(int(fn/2)+1,3,percent_CA3)
+        sheet_temp.write(int(fn/2)+1,4,percent_CA1)
+        sheet_temp.write(int(fn/2)+1,5,len(CA3_dists))
+        sheet_temp.write(int(fn/2)+1,6,len(CA1_dists))
+        
 #your code here
 #folderfile load file 1 data and zed = that data and loop it -- genfromtxt
-indir = r'C:\Users\colorboxy\Documents\AD mouse(APP KI)\csvs'
+indir = r'C:\Users\cdcox_000\Documents\BenExpts\Throughput Expts\csvs'
 
 m_wave_amp_list=[]
 m_wave_area_list=[]
@@ -200,7 +270,7 @@ filelist=os.listdir(indir)
 f_n=len(filelist)
 master_dict = AutoVivification()
 # filelist = filelist[0:4]
-
+seconds=10
 for fnn,filenames in enumerate(filelist):
     if "csv" in filenames[-4:]:     
         zed = np.genfromtxt(os.path.join(indir,filenames),delimiter= ',')
@@ -366,3 +436,23 @@ for fnn,filenames in enumerate(filelist):
     
     dataStruct(user_dict,indir,thresh)
     '''
+        
+coherence_trig=0    
+target_list = ['wave_amp','wave_area','median_ibi','median_freq','Total Frequency']
+workbook=xlsxwriter.Workbook(os.path.join(indir,'alldata.xlsx'),{'nan_inf_to_errors': True})
+i=0
+threshs = master_dict.keys()
+'''
+sheet_temp = workbook.add_worksheet('avgSPW.05')
+excel_long_writer(master_dict,sheet_temp)
+'''
+for ttt in threshs:
+    sheet_temp=workbook.add_worksheet(str(ttt))
+    temp_dict = master_dict[ttt]
+    excel_data_writer(temp_dict,target_list,workbook,sheet_temp)
+
+if coherence_trig==1:
+    sheet_temp =  workbook.add_worksheet('averages')    
+    make_that_CA3_CA1_thing(master_dict,sheet_temp)
+    
+workbook.close()

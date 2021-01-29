@@ -8,8 +8,8 @@ Created on Tue Dec  4 10:56:19 2018
 import csv
 import numpy as np
 import os
-in_dir = r'C:\Users\colorboxy\Documents\AD mouse(APP KI)'
-out_dir= r'C:\Users\colorboxy\Documents\AD mouse(APP KI)\csvs'
+in_dir = r'C:\Users\cdcox_000\Documents\BenExpts\Throughput Expts'
+out_dir= r'C:\Users\cdcox_000\Documents\BenExpts\Throughput Expts\csvs'
 f_list = os.listdir(in_dir)
 for file_name in f_list:
     if not('.txt' in file_name):

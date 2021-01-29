@@ -79,7 +79,7 @@ def make_that_CA3_CA1_thing(master_dict,sheet_temp):
         sheet_temp.write(int(fn/2)+1,6,len(CA1_dists))
         
 coherence_trig=0    
-out_dir=r'C:\Users\colorboxy\Documents\AD mouse(APP KI)\csvs'       
+out_dir=r'C:\Users\cdcox_000\Documents\BenExpts\Dorsal slices\csvs'       
 target_list = ['wave_amp','wave_area','median_ibi','median_freq','Total Frequency']
 workbook=xlsxwriter.Workbook(os.path.join(out_dir,'alldata.xlsx'),{'nan_inf_to_errors': True})
 i=0

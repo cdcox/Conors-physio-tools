@@ -94,7 +94,7 @@ def reverberation_test(starts_stops):
     #ISI_hist=np.histogram(ISI,time_bins)
     return ISI
 
-directory = r'C:\Users\colorboxy\Documents\AD mouse(APP KI)\csvs' 
+directory = r'C:\Users\cdcox_000\Documents\BenExpts\Throughput Expts\csvs'  
 fs = 20000
 highcut = 3000
 lowcut = 300
